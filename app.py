@@ -116,31 +116,136 @@ def obter_sla_por_prioridade(prioridade: str, departamento: str = None) -> int:
     return SLA_PADRAO.get(prioridade, 3)
 
 def main():
-    # Header com logo
+    # CSS personalizado para melhorar a aparência
+    st.markdown("""
+    <style>
+    .main-header {
+        background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+        padding: 2rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .title-text {
+        color: white;
+        margin: 0;
+    }
+    .subtitle-text {
+        color: #e8f4fd;
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+    }
+    .brand-text {
+        color: #ffd700;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+    .stats-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #2a5298;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin: 0.5rem 0;
+    }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2a5298;
+        margin: 0;
+    }
+    .metric-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        text-align: center;
+        font-weight: bold;
+    }
+    .info-box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid #17a2b8;
+    }
+    .success-box {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid #28a745;
+        color: #155724;
+    }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid #ffc107;
+        color: #856404;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Header elegante com logo
+    st.markdown('<div class="main-header">', unsafe_allow_html=True)
+    
     col1, col2 = st.columns([1, 4])
     
     with col1:
-        # Verifica se o logo existe
+        # Logo com melhor apresentação
         logo_path = "assets/img/logo_ziran.jpg"
         if os.path.exists(logo_path):
-            st.image(logo_path, width=120)
+            st.image(logo_path, width=140)
         else:
-            st.write("🏢")  # Fallback se logo não existir
+            st.markdown('<div style="font-size: 4rem; text-align: center; color: white;">🏢</div>', unsafe_allow_html=True)
     
     with col2:
-        st.title("📋 Sistema de Gestão de Compras - SLA")
-        st.markdown("### Controle de Solicitações e Medição de SLA")
-        st.markdown("**Ziran - Gestão Inteligente**")
+        st.markdown('<h1 class="title-text">📋 Sistema de Gestão de Compras - SLA</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="subtitle-text">Controle de Solicitações e Medição de SLA</p>', unsafe_allow_html=True)
+        st.markdown('<p class="brand-text">✨ Ziran - Gestão Inteligente</p>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Carrega os dados
     data = load_data()
     
-    # Sidebar para navegação
-    # Logo menor na sidebar
-    if os.path.exists("assets/img/logo_ziran.jpg"):
-        st.sidebar.image("assets/img/logo_ziran.jpg", width=80)
+    # Sidebar com design melhorado
+    st.sidebar.markdown("""
+    <style>
+    .sidebar-logo {
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
-    st.sidebar.title("🔧 Navegação")
+    # Logo na sidebar com melhor apresentação
+    if os.path.exists("assets/img/logo_ziran.jpg"):
+        st.sidebar.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
+        st.sidebar.image("assets/img/logo_ziran.jpg", width=100)
+        st.sidebar.markdown('</div>', unsafe_allow_html=True)
+    
+    st.sidebar.markdown("### 🔧 Navegação")
+    st.sidebar.markdown("*Selecione uma opção abaixo:*")
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
         [
@@ -152,15 +257,36 @@ def main():
         ]
     )
     
-    # Mostra estatísticas rápidas na sidebar
+    # Estatísticas rápidas com design melhorado
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📈 Estatísticas Rápidas")
     
     total_solicitacoes = len(data["solicitacoes"])
     solicitacoes_pendentes = len([s for s in data["solicitacoes"] if s["status"] != "Pedido Finalizado"])
     
-    st.sidebar.metric("Total de Solicitações", total_solicitacoes)
-    st.sidebar.metric("Em Andamento", solicitacoes_pendentes)
+    # Cards de métricas na sidebar
+    st.sidebar.markdown(f"""
+    <div class="stats-card">
+        <p class="metric-value">{total_solicitacoes}</p>
+        <p class="metric-label">Total de Solicitações</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.sidebar.markdown(f"""
+    <div class="stats-card">
+        <p class="metric-value">{solicitacoes_pendentes}</p>
+        <p class="metric-label">Pendentes</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Adicionar mais uma métrica útil
+    finalizadas = len([s for s in data["solicitacoes"] if s["status"] == "Pedido Finalizado"])
+    st.sidebar.markdown(f"""
+    <div class="stats-card">
+        <p class="metric-value">{finalizadas}</p>
+        <p class="metric-label">Finalizadas</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     if total_solicitacoes > 0:
         # Calcula SLA médio
@@ -177,8 +303,8 @@ def main():
             st.sidebar.metric("Taxa SLA Cumprido", f"{taxa_sla:.1f}%")
     
     if opcao == "📝 Nova Solicitação":
-        st.header("📝 Nova Solicitação de Compra")
-        st.markdown("*Baseado na estrutura da planilha Excel - Aba 'Solicitação'*")
+        st.markdown('<div class="section-header">📝 Nova Solicitação de Compra</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">💡 <strong>Baseado na estrutura da planilha Excel - Aba \'Solicitação\'</strong></div>', unsafe_allow_html=True)
         
         with st.form("nova_solicitacao"):
             # Campos principais baseados na planilha
@@ -289,8 +415,8 @@ def main():
                     st.error("❌ Por favor, preencha todos os campos obrigatórios (*)")
     
     elif opcao == "🔄 Mover para Próxima Etapa":
-        st.header("🔄 Mover Solicitação para Próxima Etapa")
-        st.markdown("*Fluxo baseado na planilha Excel: Solicitação → Suprimentos → Em Cotação → Pedido Finalizado*")
+        st.markdown('<div class="section-header">🔄 Mover Solicitação para Próxima Etapa</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">⚡ <strong>Controle do fluxo do processo de compras</strong></div>', unsafe_allow_html=True)
         
         # Filtra solicitações que não estão finalizadas
         solicitacoes_ativas = [s for s in data["solicitacoes"] if s["status"] != "Pedido Finalizado"]
@@ -450,8 +576,8 @@ def main():
                 st.info("✅ Esta solicitação já está finalizada!")
     
     elif opcao == "📊 Dashboard SLA":
-        st.header("📊 Dashboard SLA - Análise de Performance")
-        st.markdown("*Métricas baseadas na estrutura da planilha Excel*")
+        st.markdown('<div class="section-header">📊 Dashboard SLA</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">📈 <strong>Visualização baseada nas abas da planilha Excel</strong></div>', unsafe_allow_html=True)
         
         if not data["solicitacoes"]:
             st.warning("📋 Não há dados para exibir no dashboard.")
@@ -617,8 +743,8 @@ def main():
             st.success("✅ Nenhuma solicitação com SLA em risco!")
     
     elif opcao == "📚 Histórico por Etapa":
-        st.header("📚 Histórico por Etapa")
-        st.markdown("*Visualização baseada nas abas da planilha Excel*")
+        st.markdown('<div class="section-header">📚 Histórico por Etapa</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">📋 <strong>Visualização baseada nas abas da planilha Excel</strong></div>', unsafe_allow_html=True)
         
         if not data["solicitacoes"]:
             st.warning("📋 Não há dados para exibir.")
@@ -693,8 +819,8 @@ def main():
             st.info("📋 Nenhuma solicitação encontrada com os filtros aplicados.")
     
     elif opcao == "⚙️ Configurações SLA":
-        st.header("⚙️ Configurações SLA")
-        st.markdown("*Personalize os SLAs por prioridade e departamento*")
+        st.markdown('<div class="section-header">⚙️ Configurações SLA</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">🔧 <strong>Personalize os SLAs por prioridade e departamento</strong></div>', unsafe_allow_html=True)
         
         st.subheader("📋 SLA Atual por Prioridade")
         
