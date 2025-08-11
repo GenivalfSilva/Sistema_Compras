@@ -116,13 +116,30 @@ def obter_sla_por_prioridade(prioridade: str, departamento: str = None) -> int:
     return SLA_PADRAO.get(prioridade, 3)
 
 def main():
-    st.title("📋 Sistema de Gestão de Compras - SLA")
-    st.markdown("### Controle de Solicitações e Medição de SLA baseado na Planilha Excel")
+    # Header com logo
+    col1, col2 = st.columns([1, 4])
+    
+    with col1:
+        # Verifica se o logo existe
+        logo_path = "assets/img/logo_ziran.jpg"
+        if os.path.exists(logo_path):
+            st.image(logo_path, width=120)
+        else:
+            st.write("🏢")  # Fallback se logo não existir
+    
+    with col2:
+        st.title("📋 Sistema de Gestão de Compras - SLA")
+        st.markdown("### Controle de Solicitações e Medição de SLA")
+        st.markdown("**Ziran - Gestão Inteligente**")
     
     # Carrega os dados
     data = load_data()
     
     # Sidebar para navegação
+    # Logo menor na sidebar
+    if os.path.exists("assets/img/logo_ziran.jpg"):
+        st.sidebar.image("assets/img/logo_ziran.jpg", width=80)
+    
     st.sidebar.title("🔧 Navegação")
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
