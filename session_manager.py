@@ -55,19 +55,22 @@ class SessionManager:
     
     def login(self, username: str, password: str) -> bool:
         """Faz login e cria sessão persistente"""
-        user = self.db.authenticate_user(username, password)
+        # Tenta autenticar via banco se disponível
+        user = None
+        if hasattr(self.db, 'db_available') and self.db.db_available:
+            user = self.db.authenticate_user(username, password)
         
         if user:
             session_id = self.create_session(username)
             
             # Salva dados do usuário no session_state
             st.session_state["usuario"] = {
-                "username": user.get("username"),
-                "nome": user.get("nome", user.get("username")),
-                "perfil": user.get("perfil"),
-                "departamento": user.get("departamento"),
-                "session_id": session_id
+                "username": user["username"],
+                "nome": user["nome"],
+                "perfil": user["perfil"],
+                "departamento": user["departamento"]
             }
+            
             return True
         
         return False

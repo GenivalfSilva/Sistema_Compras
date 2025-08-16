@@ -8,19 +8,23 @@ from typing import Dict, List
 import math
 import hashlib
 
-# Importa novos módulos para banco de dados e sessões
-try:
-    from database import get_database
-    from session_manager import get_session_manager
-    USE_DATABASE = True
-    # Testa se o banco está disponível
-    db_test = get_database()
-    if not hasattr(db_test, 'db_available') or not db_test.db_available:
-        USE_DATABASE = False
-        st.info("💾 Usando modo JSON (banco não disponível no ambiente cloud)")
-except ImportError:
+# Detecta ambiente cloud
+import os
+IS_CLOUD = os.path.exists('/mount/src') or 'STREAMLIT_CLOUD' in os.environ
+
+# Sistema simples para cloud
+if IS_CLOUD:
+    from simple_session import simple_login, ensure_session_persistence, simple_logout
     USE_DATABASE = False
-    st.info("💾 Usando modo JSON local")
+else:
+    # Tenta usar banco apenas local
+    try:
+        from database import get_database
+        from session_manager import get_session_manager
+        USE_DATABASE = True
+    except ImportError:
+        from simple_session import simple_login, ensure_session_persistence, simple_logout
+        USE_DATABASE = False
 
 # Configuração da página
 st.set_page_config(
@@ -598,14 +602,14 @@ def main():
                 else:
                     st.error("Usuário ou senha incorretos.")
             else:
-                u = authenticate_user(data, login_user.strip(), login_pass)
-                if u:
-                    st.session_state["usuario"] = {
-                        "username": u.get("username"),
-                        "nome": u.get("nome", u.get("username")),
-                        "perfil": u.get("perfil"),
-                        "departamento": u.get("departamento")
-                    }
+                # Sistema simples para cloud
+                if IS_CLOUD:
+                    user = simple_login(data, login_user.strip(), login_pass)
+                else:
+                    user = authenticate_user(data, login_user.strip(), login_pass)
+                
+                if user:
+                    st.session_state["usuario"] = user
                     st.success("Login realizado com sucesso!")
                     st.rerun()
                 else:
@@ -614,6 +618,7 @@ def main():
         st.info("Faça login para acessar o sistema.")
         return
     
+    # Continua com o usuário logado
     usuario = st.session_state.get("usuario", {})
     perfil_atual = usuario.get("perfil", "Solicitante")
     nome_atual = usuario.get("nome", usuario.get("username", "Usuário"))
@@ -621,21 +626,19 @@ def main():
     with st.sidebar.expander("👤 Usuário", expanded=True):
         st.markdown(f"**Nome:** {nome_atual}")
         st.markdown(f"**Perfil:** {perfil_atual}")
-        if st.button("Sair"):
+        
+        if st.button("🚪 Logout", key="logout_btn"):
             if USE_DATABASE:
                 session_manager = get_session_manager()
                 session_manager.logout()
             else:
-                st.session_state.pop("usuario", None)
-            try:
-                st.rerun()
-            except Exception:
-                pass
-                st.experimental_rerun()
+                simple_logout()
+            st.rerun()
     
     # Notificações por perfil logado
     notif_alvos = [perfil_atual] if perfil_atual != "Admin" else ["Gerência&Diretoria", "Suprimentos"]
     pend_notif = [n for n in data.get("notificacoes", []) if n.get("perfil") in notif_alvos and not n.get("lida")]
+    
     if pend_notif:
         st.sidebar.markdown("### 🔔 Notificações")
         for n in pend_notif[:5]:
@@ -644,6 +647,7 @@ def main():
     # Navegação por perfil
     st.sidebar.markdown("### 🔧 Navegação")
     st.sidebar.markdown("*Selecione uma opção abaixo:*")
+    
     def opcoes_por_perfil(p: str) -> List[str]:
         if p == "Admin":
             return [

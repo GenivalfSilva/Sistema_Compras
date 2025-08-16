@@ -36,28 +36,29 @@ class DatabaseManager:
     def setup_cloud_database(self):
         """Configura banco para Streamlit Cloud"""
         try:
-            # Exemplo para PostgreSQL no Streamlit Cloud
-            import psycopg2
-            from psycopg2.extras import RealDictCursor
-            
-            # Usar st.secrets para credenciais
-            self.conn = psycopg2.connect(
-                host=st.secrets["database"]["host"],
-                database=st.secrets["database"]["name"],
-                user=st.secrets["database"]["user"],
-                password=st.secrets["database"]["password"],
-                port=st.secrets["database"]["port"],
-                cursor_factory=RealDictCursor
-            )
-            self.create_tables_postgres()
-        except ImportError:
-            st.error("psycopg2 não instalado. Usando SQLite local.")
-            self.use_cloud_db = False
-            self.setup_local_database()
+            # Tenta PostgreSQL primeiro se configurado
+            if hasattr(st, 'secrets') and 'postgres' in st.secrets:
+                import psycopg2
+                from psycopg2.extras import RealDictCursor
+                
+                self.conn = psycopg2.connect(
+                    host=st.secrets["postgres"]["host"],
+                    database=st.secrets["postgres"]["database"],
+                    user=st.secrets["postgres"]["user"],
+                    password=st.secrets["postgres"]["password"],
+                    port=st.secrets["postgres"]["port"],
+                    cursor_factory=RealDictCursor
+                )
+                self.create_tables()
+                self.db_available = True
+                return
         except Exception as e:
-            st.error(f"Erro ao conectar banco cloud: {e}")
-            self.use_cloud_db = False
-            self.setup_local_database()
+            print(f"PostgreSQL não disponível: {e}")
+        
+        # Fallback: desabilita banco completamente no cloud
+        print("Cloud environment detected - database disabled")
+        self.db_available = False
+        self.conn = None
     
     def create_tables(self):
         """Cria tabelas SQLite"""
