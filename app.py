@@ -1332,12 +1332,14 @@ def main():
         for etapa in ETAPAS_PROCESSO:
             etapas_count[etapa] = len([s for s in data["solicitacoes"] if s["status"] == etapa])
         
-        col1, col2, col3, col4 = st.columns(4)
-        cols = [col1, col2, col3, col4]
-        
-        for i, (etapa, count) in enumerate(etapas_count.items()):
-            with cols[i]:
-                st.metric(etapa, count)
+        # Renderiza em linhas de até 4 colunas para evitar IndexError quando houver mais de 4 etapas
+        items = list(etapas_count.items())
+        for start in range(0, len(items), 4):
+            chunk = items[start:start+4]
+            cols = st.columns(len(chunk))
+            for col, (etapa, count) in zip(cols, chunk):
+                with col:
+                    st.metric(etapa, count)
         
         # Análise por departamento
         st.subheader("🏢 Performance por Departamento")
