@@ -1242,9 +1242,13 @@ def main():
             col1, col2, col3, col4 = st.columns(4)
             
             total_solicitacoes = len(data["solicitacoes"])
-            pendentes = len([s for s in data["solicitacoes"] if s["status"] not in ["Aprovado", "Reprovado", "Finalizado"]])
+            pendentes = len([s for s in data["solicitacoes"] if s["status"] not in ["Aprovado", "Reprovado", "Pedido Finalizado"]])
             aprovadas = len([s for s in data["solicitacoes"] if s["status"] == "Aprovado"])
-            em_atraso = len([s for s in data["solicitacoes"] if calcular_dias_uteis_decorridos(s["data_criacao"]) > obter_sla_por_prioridade(s["prioridade"]) and s["status"] not in ["Aprovado", "Reprovado", "Finalizado"]])
+            em_atraso = len([
+                s for s in data["solicitacoes"]
+                if s["status"] not in ["Aprovado", "Reprovado", "Pedido Finalizado"]
+                and calcular_dias_uteis(s.get("carimbo_data_hora")) > (s.get("sla_dias") or obter_sla_por_prioridade(s.get("prioridade", "Normal")))
+            ])
             
             with col1:
                 st.markdown(f"""
