@@ -17,6 +17,9 @@ except Exception:
 # Nome do cookie de autenticação
 COOKIE_NAME = "ziran_auth"
 
+# Singleton do CookieManager para evitar chaves duplicadas
+_COOKIE_MANAGER_SINGLETON = None
+
 def _get_cookie_secret() -> str:
     """Obtém segredo para assinar o cookie (use st.secrets se disponível)."""
     try:
@@ -27,11 +30,14 @@ def _get_cookie_secret() -> str:
     return os.getenv("COOKIE_SECRET", "ziran_session_secret_v1")
 
 def _get_cookie_manager():
-    """Retorna instância do CookieManager se disponível."""
+    """Retorna instância única do CookieManager se disponível."""
+    global _COOKIE_MANAGER_SINGLETON
     if stx is None:
         return None
-    # O componente precisa ser instanciado durante o script
-    return stx.CookieManager()
+    if _COOKIE_MANAGER_SINGLETON is None:
+        # Use uma key única e estável para o componente
+        _COOKIE_MANAGER_SINGLETON = stx.CookieManager(key="ziran_cookie_manager_v1")
+    return _COOKIE_MANAGER_SINGLETON
 
 def _sign_payload(payload_b64: str) -> str:
     secret = _get_cookie_secret().encode("utf-8")
