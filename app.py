@@ -247,16 +247,22 @@ def ensure_admin_user(data: Dict) -> bool:
 def add_user(data: Dict, username: str, nome: str, perfil: str, departamento: str, senha: str) -> str:
     if not username or not senha or not perfil:
         return "Preencha usuário, senha e perfil."
-    if find_user(data, username):
-        return "Usuário já existe."
-    data.setdefault("usuarios", []).append({
-        "username": username,
-        "nome": nome or username,
-        "perfil": perfil,
-        "departamento": departamento or "Outro",
-        "senha_hash": hash_password(senha)
-    })
-    return ""
+    
+    if USE_DATABASE:
+        db = get_database()
+        success = db.add_user(username, nome or username, perfil, departamento or "Outro", senha)
+        return "" if success else "Usuário já existe."
+    else:
+        if find_user(data, username):
+            return "Usuário já existe."
+        data.setdefault("usuarios", []).append({
+            "username": username,
+            "nome": nome or username,
+            "perfil": perfil,
+            "departamento": departamento or "Outro",
+            "senha_hash": hash_password(senha)
+        })
+        return ""
 
 def reset_user_password(data: Dict, username: str, nova_senha: str) -> str:
     user = find_user(data, username)
@@ -545,29 +551,31 @@ def main():
     # Carrega os dados
     data = load_data()
     
+    # Inicializa gerenciador de sessões se disponível
+    if USE_DATABASE:
+        session_manager = get_session_manager()
+        session_manager.restore_session()
+    
     # Sidebar com design melhorado
     st.sidebar.markdown("""
-    <style>
-    .sidebar-logo {
-        display: flex;
-        justify-content: center;
-        padding: 1rem 0;
-        border-bottom: 2px solid #e0e0e0;
-        margin-bottom: 1rem;
-    }
-    </style>
+    <div style="background: linear-gradient(135deg, var(--ziran-red) 0%, var(--ziran-red-dark) 100%); 
+                padding: 1rem; border-radius: 12px; margin-bottom: 1rem; text-align: center;">
+        <h3 style="color: white; margin: 0; font-family: 'Poppins', sans-serif;">🏢 ZIRAN</h3>
+        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 0.9rem;">Sistema de Compras</p>
+    </div>
     """, unsafe_allow_html=True)
     
-    # Logo na sidebar com melhor apresentação
-    if os.path.exists("assets/img/logo_ziran.jpg"):
-        st.sidebar.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
-        st.sidebar.image("assets/img/logo_ziran.jpg", width=100)
-        st.sidebar.markdown('</div>', unsafe_allow_html=True)
-    
-    # ===== Login / Sessão =====
-    changed = ensure_admin_user(data)
-    if changed:
-        save_data(data)
+    # Garante que existe um usuário admin
+    if USE_DATABASE:
+        db = get_database()
+        # Cria admin se não existir
+        admin_exists = db.authenticate_user("admin", "admin123")
+        if not admin_exists:
+            db.add_user("admin", "Administrador", "Admin", "TI", "admin123")
+    else:
+        changed = ensure_admin_user(data)
+        if changed:
+            save_data(data)
     
     if "usuario" not in st.session_state:
         st.sidebar.markdown("### 🔐 Login")
@@ -576,20 +584,27 @@ def main():
             login_pass = st.text_input("Senha", type="password")
             entrar = st.form_submit_button("Entrar")
         if entrar:
-            u = authenticate_user(data, login_user.strip(), login_pass)
-            if u:
-                st.session_state["usuario"] = {
-                    "username": u.get("username"),
-                    "nome": u.get("nome", u.get("username")),
-                    "perfil": u.get("perfil"),
-                    "departamento": u.get("departamento", "Outro")
-                }
-                try:
+            if USE_DATABASE:
+                session_manager = get_session_manager()
+                if session_manager.login(login_user.strip(), login_pass):
+                    st.success("Login realizado com sucesso!")
                     st.rerun()
-                except Exception:
-                    st.experimental_rerun()
+                else:
+                    st.error("Usuário ou senha incorretos.")
             else:
-                st.sidebar.error("Usuário ou senha inválidos.")
+                u = authenticate_user(data, login_user.strip(), login_pass)
+                if u:
+                    st.session_state["usuario"] = {
+                        "username": u.get("username"),
+                        "nome": u.get("nome", u.get("username")),
+                        "perfil": u.get("perfil"),
+                        "departamento": u.get("departamento")
+                    }
+                    st.success("Login realizado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("Usuário ou senha incorretos.")
+        
         st.info("Faça login para acessar o sistema.")
         return
     
