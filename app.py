@@ -565,6 +565,12 @@ def main():
     if USE_DATABASE:
         session_manager = get_session_manager()
         session_manager.restore_session()
+    else:
+        # Cloud/simple mode: tenta restaurar sessão via cookie
+        try:
+            ensure_session_persistence()
+        except Exception:
+            pass
     
     # Sidebar com design melhorado
     st.sidebar.markdown("""
