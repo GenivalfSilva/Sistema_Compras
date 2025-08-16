@@ -48,7 +48,6 @@ Sugestão de usuários:
   - Departamento* (lista `DEPARTAMENTOS` em `app.py` linhas 50-58)
   - Prioridade* (lista `PRIORIDADES` em `app.py` linhas 60-65)
   - Descrição*
-  - Aplicação (Código)*
   - Anexos (opcional, tipos permitidos em `ALLOWED_FILE_TYPES` — `app.py` linhas 75-77)
   - Informações de controle (somente leitura): Nº Solicitação, Status Inicial, Data/Hora, SLA  
   O SLA exibido segue `SLA_PADRAO` (`app.py` linhas 67-73) e `obter_sla_por_prioridade()` (`app.py` linhas 316-319).
@@ -103,7 +102,7 @@ Sugestão de usuários:
 ## Testes por Página
 
 - 📝 Nova Solicitação
-  - Campos obrigatórios: nome, departamento, prioridade, descrição, aplicação.
+  - Campos obrigatórios: nome, departamento, prioridade, descrição.
   - SLA exibido dinamicamente segundo prioridade (`obter_sla_por_prioridade()`).
   - Uploads múltiplos; após envio, a área mostra “✅ X arquivo(s) selecionado(s)”.
   - Esperado: número de solicitação incremento automático, histórico inicial, anexos salvos em subpasta da solicitação (quando aplicável).

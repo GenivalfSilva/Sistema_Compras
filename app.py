@@ -771,7 +771,7 @@ def main():
             st.markdown('<div class="form-section">', unsafe_allow_html=True)
             st.markdown('<h3>📋 Dados da Solicitação</h3>', unsafe_allow_html=True)
             
-            col3, col4 = st.columns([2, 1])
+            col3 = st.columns(1)[0]
             with col3:
                 descricao = st.text_area(
                     "Descrição*", 
@@ -780,14 +780,7 @@ def main():
                     placeholder="Descreva detalhadamente o que está sendo solicitado..."
                 )
             
-            with col4:
-                aplicacao = st.number_input(
-                    "Aplicação (Código)*", 
-                    min_value=1, 
-                    step=1,
-                    help="Código numérico da aplicação",
-                    value=1
-                )
+            # Campo "Aplicação (Código)" removido do formulário
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -849,7 +842,7 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
         
         if submitted:
-            if solicitante and departamento and descricao and aplicacao:
+            if solicitante and departamento and descricao:
                 # Gera números automáticos
                 numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
                 data["configuracoes"]["proximo_numero_solicitacao"] += 1
@@ -869,7 +862,7 @@ def main():
                     "departamento": departamento,
                     "prioridade": prioridade,
                     "descricao": descricao,
-                    "aplicacao": aplicacao,
+                    # Campo "aplicacao" removido
                     "status": "Solicitação",  # Primeira etapa
                     "numero_solicitacao_estoque": numero_solicitacao,
                     "numero_pedido_compras": None,
