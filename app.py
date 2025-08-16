@@ -170,14 +170,12 @@ def get_best_cotacao(cotacoes: List[Dict]) -> Dict:
     return best or {}
 
 def get_next_pending_approval(aprovacoes: List[Dict]) -> Dict:
-    """Retorna o próximo registro de aprovação pendente respeitando a ordem Gerência -> Diretoria."""
+    """Retorna o próximo registro de aprovação pendente."""
     if not aprovacoes:
         return {}
-    ordem = ["Gerência", "Diretoria"]
-    for nivel in ordem:
-        for a in aprovacoes:
-            if a.get("nivel") == nivel and a.get("status") == "Pendente":
-                return a
+    for a in aprovacoes:
+        if a.get("nivel") == "Gerência&Diretoria" and a.get("status") == "Pendente":
+            return a
     return {}
 
 def add_notification(data: Dict, perfil: str, numero: int, mensagem: str):
@@ -293,88 +291,220 @@ def obter_sla_por_prioridade(prioridade: str, departamento: str = None) -> int:
     return SLA_PADRAO.get(prioridade, 3)
 
 def main():
-    # CSS personalizado para melhorar a aparência
+    # CSS personalizado com cores da marca Ziran
     st.markdown("""
     <style>
-    .main-header {
-        background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
-        padding: 2rem 1rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+        --ziran-red: #E53E3E;
+        --ziran-red-light: #FC8181;
+        --ziran-red-dark: #C53030;
+        --ziran-gray: #2D3748;
+        --ziran-gray-light: #4A5568;
+        --ziran-white: #FFFFFF;
+        --ziran-bg-light: #F7FAFC;
+        --ziran-bg-gray: #EDF2F7;
     }
-    .logo-container {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
+    
+    .stApp {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(rgba(247, 250, 252, 0.95), rgba(247, 250, 252, 0.95)), 
+                    url('./assets/img/ziran fundo.jpg') center/cover no-repeat fixed;
+        min-height: 100vh;
     }
-    .title-text {
-        color: white;
-        margin: 0;
-    }
-    .subtitle-text {
-        color: #e8f4fd;
-        margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
-    }
-    .brand-text {
-        color: #ffd700;
-        font-weight: bold;
-        font-size: 1rem;
-    }
-    .stats-card {
-        background: white;
+    
+    .background-overlay {
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.05) 0%, rgba(197, 48, 48, 0.05) 100%);
+        backdrop-filter: blur(1px);
+        border-radius: 16px;
         padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #2a5298;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin: 0.5rem 0;
     }
-    .metric-value {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #2a5298;
-        margin: 0;
+    
+    .main-header {
+        background: linear-gradient(135deg, var(--ziran-red) 0%, var(--ziran-red-dark) 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(229, 62, 62, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .metric-label {
-        color: #666;
-        font-size: 0.9rem;
+    .title-text {
+        color: var(--ziran-white);
         margin: 0;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 2.2rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .subtitle-text {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0.5rem 0 0 0;
+        font-size: 1.1rem;
+        font-weight: 400;
+        opacity: 0.9;
+    }
+    .brand-text {
+        color: var(--ziran-white);
+        font-weight: 600;
+        font-size: 1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        display: inline-block;
     }
     .section-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 1rem 0;
+        background: linear-gradient(135deg, var(--ziran-red) 0%, var(--ziran-red-dark) 100%);
+        color: var(--ziran-white);
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        margin: 2rem 0 1.5rem 0;
         text-align: center;
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 1.3rem;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 4px 16px rgba(229, 62, 62, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .info-box {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        border-left: 4px solid #17a2b8;
+        background: linear-gradient(135deg, var(--ziran-bg-light) 0%, var(--ziran-bg-gray) 100%);
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid var(--ziran-red);
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        color: var(--ziran-gray);
     }
     .success-box {
-        background: #d4edda;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        border-left: 4px solid #28a745;
-        color: #155724;
+        background: linear-gradient(135deg, #F0FFF4 0%, #C6F6D5 100%);
+        border: 1px solid #9AE6B4;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #38A169;
+        color: #22543D;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(56, 161, 105, 0.1);
     }
     .warning-box {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 1rem;
+        background: linear-gradient(135deg, #FFFAF0 0%, #FED7AA 100%);
+        border: 1px solid #F6AD55;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #ED8936;
+        color: #C05621;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(237, 137, 54, 0.1);
+    }
+    .form-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         margin: 1rem 0;
-        border-left: 4px solid #ffc107;
-        color: #856404;
+    }
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--ziran-bg-gray);
+    }
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    .form-section h3 {
+        color: var(--ziran-gray);
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--ziran-red);
+        display: inline-block;
+    }
+    .stats-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid var(--ziran-red);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        margin: 0.5rem 0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(229, 62, 62, 0.12);
+    }
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--ziran-red);
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+    }
+    .metric-label {
+        color: var(--ziran-gray-light);
+        font-size: 0.9rem;
+        margin: 0;
+        font-weight: 500;
+    }
+    .stButton > button {
+        background: linear-gradient(135deg, var(--ziran-red) 0%, var(--ziran-red-dark) 100%) !important;
+        color: var(--ziran-white) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 16px rgba(229, 62, 62, 0.3) !important;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(229, 62, 62, 0.4) !important;
+        background: linear-gradient(135deg, var(--ziran-red-light) 0%, var(--ziran-red) 100%) !important;
+    }
+    .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
+        font-weight: 500 !important;
+        color: var(--ziran-gray) !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .stFileUploader {
+        border: 2px dashed var(--ziran-red-light) !important;
+        border-radius: 12px !important;
+        padding: 1.5rem !important;
+        background: var(--ziran-bg-light) !important;
+        transition: all 0.3s ease !important;
+    }
+    .stFileUploader:hover {
+        border-color: var(--ziran-red) !important;
+        background: var(--ziran-white) !important;
+    }
+    .sidebar .stSelectbox {
+        margin-bottom: 1rem;
+    }
+    /* Sidebar customization */
+    .css-1d391kg {
+        background-color: var(--ziran-white) !important;
+    }
+    .css-1d391kg .stSelectbox > div > div {
+        background-color: var(--ziran-bg-light) !important;
+        border: 1px solid var(--ziran-red-light) !important;
+    }
+    /* Metrics styling */
+    .css-1xarl3l {
+        color: var(--ziran-red) !important;
+        font-weight: 600 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -465,7 +595,7 @@ def main():
                 st.experimental_rerun()
     
     # Notificações por perfil logado
-    notif_alvos = [perfil_atual] if perfil_atual != "Admin" else ["Gerência", "Diretoria", "Suprimentos"]
+    notif_alvos = [perfil_atual] if perfil_atual != "Admin" else ["Gerência&Diretoria", "Suprimentos"]
     pend_notif = [n for n in data.get("notificacoes", []) if n.get("perfil") in notif_alvos and not n.get("lida")]
     if pend_notif:
         st.sidebar.markdown("### 🔔 Notificações")
@@ -486,7 +616,7 @@ def main():
                 "⚙️ Configurações SLA",
                 "👥 Gerenciar Usuários"
             ]
-        if p in ("Gerência", "Diretoria"):
+        if p == "Gerência&Diretoria":
             return [
                 "📱 Aprovações",
                 "📊 Dashboard SLA",
@@ -556,132 +686,199 @@ def main():
         st.markdown('<div class="section-header">📝 Nova Solicitação de Compra</div>', unsafe_allow_html=True)
         st.markdown('<div class="info-box">💡 <strong>Baseado na estrutura da planilha Excel - Aba \'Solicitação\'</strong></div>', unsafe_allow_html=True)
         
+        st.markdown('<div class="form-container">', unsafe_allow_html=True)
+        
         with st.form("nova_solicitacao"):
-            # Campos principais baseados na planilha
-            col1, col2 = st.columns(2)
+            # Seção 1: Dados do Solicitante
+            st.markdown('<div class="form-section">', unsafe_allow_html=True)
+            st.markdown('<h3>👤 Dados do Solicitante</h3>', unsafe_allow_html=True)
             
+            col1, col2 = st.columns(2)
             with col1:
-                st.markdown("**Dados do Solicitante**")
-                solicitante = st.text_input("Solicitante (Nome e Sobrenome)*", 
-                                          help="Campo obrigatório conforme planilha")
+                solicitante = st.text_input(
+                    "Solicitante (Nome e Sobrenome)*", 
+                    help="Campo obrigatório conforme planilha",
+                    placeholder="Digite o nome completo do solicitante"
+                )
                 departamento = st.selectbox(
                     "Departamento*",
                     DEPARTAMENTOS,
                     help="Departamento do solicitante"
                 )
+            
+            with col2:
                 prioridade = st.selectbox(
                     "Prioridade*",
                     PRIORIDADES,
                     help="Define o SLA automaticamente"
                 )
-                
-            with col2:
-                st.markdown("**Dados da Solicitação**")
-                descricao = st.text_area("Descrição*", height=100,
-                                        help="Descrição detalhada da solicitação")
-                aplicacao = st.number_input("Aplicação (Código)*", 
-                                          min_value=1, step=1,
-                                          help="Código numérico da aplicação")
-                
                 # Mostra SLA que será aplicado
                 sla_dias = obter_sla_por_prioridade(prioridade if 'prioridade' in locals() else "Normal")
-                st.info(f"📅 SLA para prioridade '{prioridade if 'prioridade' in locals() else 'Normal'}': {sla_dias} dias úteis")
+                st.info(f"📅 **SLA:** {sla_dias} dias úteis para prioridade '{prioridade if 'prioridade' in locals() else 'Normal'}'")
             
-            # Anexos da Solicitação (opcional)
-            anexos_files = st.file_uploader(
-                "Anexos da Solicitação (opcional)",
-                type=ALLOWED_FILE_TYPES,
-                accept_multiple_files=True
-            )
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            # Campos opcionais/futuros
-            st.markdown("---")
-            st.markdown("**Campos de Controle (preenchidos automaticamente)**")
+            # Seção 2: Dados da Solicitação
+            st.markdown('<div class="form-section">', unsafe_allow_html=True)
+            st.markdown('<h3>📋 Dados da Solicitação</h3>', unsafe_allow_html=True)
             
-            col3, col4 = st.columns(2)
+            col3, col4 = st.columns([2, 1])
             with col3:
-                st.text_input("Nº Solicitação (Estoque)", 
-                            value="Será gerado automaticamente", 
-                            disabled=True)
-                st.text_input("Status", 
-                            value="Solicitação", 
-                            disabled=True)
+                descricao = st.text_area(
+                    "Descrição*", 
+                    height=120,
+                    help="Descrição detalhada da solicitação",
+                    placeholder="Descreva detalhadamente o que está sendo solicitado..."
+                )
             
             with col4:
-                st.text_input("Carimbo de data/hora", 
-                            value=datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'), 
-                            disabled=True)
-                st.text_input("SLA (dias)", 
-                            value=f"{sla_dias} dias úteis", 
-                            disabled=True)
+                aplicacao = st.number_input(
+                    "Aplicação (Código)*", 
+                    min_value=1, 
+                    step=1,
+                    help="Código numérico da aplicação",
+                    value=1
+                )
             
-            submitted = st.form_submit_button("🚀 Criar Solicitação", use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            if submitted:
-                if solicitante and departamento and descricao and aplicacao:
-                    # Gera números automáticos
-                    numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
-                    data["configuracoes"]["proximo_numero_solicitacao"] += 1
+            # Seção 3: Anexos
+            st.markdown('<div class="form-section">', unsafe_allow_html=True)
+            st.markdown('<h3>📎 Anexos da Solicitação</h3>', unsafe_allow_html=True)
+            
+            anexos_files = st.file_uploader(
+                "Faça upload dos arquivos relacionados à solicitação (opcional)",
+                type=ALLOWED_FILE_TYPES,
+                accept_multiple_files=True,
+                help="Tipos permitidos: PDF, PNG, JPG, JPEG, DOC, DOCX, XLS, XLSX"
+            )
+            
+            if anexos_files:
+                st.success(f"✅ {len(anexos_files)} arquivo(s) selecionado(s)")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Seção 4: Informações Automáticas
+            st.markdown('<div class="form-section">', unsafe_allow_html=True)
+            st.markdown('<h3>⚙️ Informações de Controle</h3>', unsafe_allow_html=True)
+            st.markdown('<p style="color: #64748b; font-style: italic; margin-bottom: 1rem;">Os campos abaixo são preenchidos automaticamente pelo sistema</p>', unsafe_allow_html=True)
+            
+            col5, col6 = st.columns(2)
+            with col5:
+                st.text_input(
+                    "Nº Solicitação (Estoque)", 
+                    value="Será gerado automaticamente", 
+                    disabled=True
+                )
+                st.text_input(
+                    "Status Inicial", 
+                    value="Solicitação", 
+                    disabled=True
+                )
+            
+            with col6:
+                st.text_input(
+                    "Data/Hora de Criação", 
+                    value=datetime.datetime.now().strftime('%d/%m/%Y às %H:%M:%S'), 
+                    disabled=True
+                )
+                st.text_input(
+                    "SLA Aplicado", 
+                    value=f"{sla_dias} dias úteis", 
+                    disabled=True
+                )
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Botão de submissão
+            st.markdown('<br>', unsafe_allow_html=True)
+            submitted = st.form_submit_button(
+                "🚀 Criar Solicitação", 
+                use_container_width=True
+            )
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        if submitted:
+            if solicitante and departamento and descricao and aplicacao:
+                # Gera números automáticos
+                numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
+                data["configuracoes"]["proximo_numero_solicitacao"] += 1
+                
+                # Calcula SLA baseado na prioridade
+                sla_dias = obter_sla_por_prioridade(prioridade, departamento)
+                
+                # Salva anexos da solicitação
+                upload_root = ensure_upload_dir(data)
+                sol_dir = os.path.join(upload_root, f"solicitacao_{numero_solicitacao}", "requisicao")
+                anexos_meta = save_uploaded_files(anexos_files, sol_dir)
+                
+                nova_solicitacao = {
+                    # Campos da planilha Excel
+                    "carimbo_data_hora": datetime.datetime.now().isoformat(),
+                    "solicitante": solicitante,
+                    "departamento": departamento,
+                    "prioridade": prioridade,
+                    "descricao": descricao,
+                    "aplicacao": aplicacao,
+                    "status": "Solicitação",  # Primeira etapa
+                    "numero_solicitacao_estoque": numero_solicitacao,
+                    "numero_pedido_compras": None,
+                    "data_numero_pedido": None,
+                    "data_cotacao": None,
+                    "data_entrega": None,
+                    "sla_dias": sla_dias,
+                    "dias_atendimento": None,
+                    "sla_cumprido": None,
+                    "observacoes": None,
+                    "anexos_requisicao": anexos_meta,
+                    "cotacoes": [],
+                    "aprovacoes": [],
+                    "valor_estimado": None,
+                    "valor_final": None,
+                    "fornecedor_recomendado": None,
+                    "fornecedor_final": None,
                     
-                    # Calcula SLA baseado na prioridade
-                    sla_dias = obter_sla_por_prioridade(prioridade, departamento)
-                    
-                    # Salva anexos da solicitação
-                    upload_root = ensure_upload_dir(data)
-                    sol_dir = os.path.join(upload_root, f"solicitacao_{numero_solicitacao}", "requisicao")
-                    anexos_meta = save_uploaded_files(anexos_files, sol_dir)
-                    
-                    nova_solicitacao = {
-                        # Campos da planilha Excel
-                        "carimbo_data_hora": datetime.datetime.now().isoformat(),
-                        "solicitante": solicitante,
-                        "departamento": departamento,
-                        "prioridade": prioridade,
-                        "descricao": descricao,
-                        "aplicacao": aplicacao,
-                        "status": "Solicitação",  # Primeira etapa
-                        "numero_solicitacao_estoque": numero_solicitacao,
-                        "numero_pedido_compras": None,
-                        "data_numero_pedido": None,
-                        "data_cotacao": None,
-                        "data_entrega": None,
-                        "sla_dias": sla_dias,
-                        "dias_atendimento": None,
-                        "sla_cumprido": None,
-                        "observacoes": None,
-                        "anexos_requisicao": anexos_meta,
-                        "cotacoes": [],
-                        "aprovacoes": [],
-                        "valor_estimado": None,
-                        "valor_final": None,
-                        "fornecedor_recomendado": None,
-                        "fornecedor_final": None,
-                        
-                        # Campos de controle interno
-                        "id": len(data["solicitacoes"]) + 1,
-                        "etapa_atual": "Solicitação",
-                        "historico_etapas": [{
-                            "etapa": "Solicitação",
-                            "data_entrada": datetime.datetime.now().isoformat(),
-                            "usuario": "Sistema"
-                        }]
-                    }
-                    
-                    data["solicitacoes"].append(nova_solicitacao)
-                    save_data(data)
-                    
-                    st.success(f"✅ Solicitação #{numero_solicitacao} criada com sucesso!")
-                    st.info(f"📅 Data/Hora: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-                    st.info(f"⏱️ SLA: {sla_dias} dias úteis")
-                    st.info(f"📊 Status: Solicitação (Etapa 1 de 4)")
-                    
-                    # Mostra próximos passos
-                    st.markdown("### 🔄 Próximos Passos")
-                    st.markdown("1. A solicitação será analisada pela área de Suprimentos")
-                    st.markdown("2. Use a opção '🔄 Mover para Próxima Etapa' para avançar o processo")
-                    
-                else:
-                    st.error("❌ Por favor, preencha todos os campos obrigatórios (*)")
+                    # Campos de controle interno
+                    "id": len(data["solicitacoes"]) + 1,
+                    "etapa_atual": "Solicitação",
+                    "historico_etapas": [{
+                        "etapa": "Solicitação",
+                        "data_entrada": datetime.datetime.now().isoformat(),
+                        "usuario": "Sistema"
+                    }]
+                }
+                
+                data["solicitacoes"].append(nova_solicitacao)
+                save_data(data)
+                
+                # Mensagem de sucesso melhorada
+                st.markdown('<div class="success-box">', unsafe_allow_html=True)
+                st.markdown(f'<h3 style="color: #065f46; margin: 0 0 1rem 0; font-family: Poppins;">🎉 Solicitação #{numero_solicitacao} Criada com Sucesso!</h3>', unsafe_allow_html=True)
+                
+                col_info1, col_info2 = st.columns(2)
+                with col_info1:
+                    st.markdown(f"**📅 Data/Hora:** {datetime.datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}")
+                    st.markdown(f"**⏱️ SLA:** {sla_dias} dias úteis")
+                with col_info2:
+                    st.markdown(f"**📊 Status:** Solicitação (Etapa 1 de 7)")
+                    st.markdown(f"**📎 Anexos:** {len(anexos_meta)} arquivo(s)")
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Próximos passos com design melhorado
+                st.markdown('<div class="info-box">', unsafe_allow_html=True)
+                st.markdown('<h4 style="color: #1e40af; margin: 0 0 1rem 0; font-family: Poppins;">🔄 Próximos Passos</h4>', unsafe_allow_html=True)
+                st.markdown("**1.** A solicitação será analisada pela área de **Suprimentos**")
+                st.markdown("**2.** Use a opção **'🔄 Mover para Próxima Etapa'** para avançar o processo")
+                st.markdown("**3.** Acompanhe o progresso no **Dashboard SLA** ou **Histórico por Etapa**")
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+            else:
+                st.markdown('<div class="warning-box">', unsafe_allow_html=True)
+                st.markdown('<h4 style="color: #92400e; margin: 0 0 0.5rem 0;">⚠️ Campos Obrigatórios</h4>', unsafe_allow_html=True)
+                st.markdown("Por favor, preencha todos os campos marcados com **asterisco (*)** antes de continuar.")
+                st.markdown('</div>', unsafe_allow_html=True)
     
     elif opcao == "🔄 Mover para Próxima Etapa":
         st.markdown('<div class="section-header">🔄 Mover Solicitação para Próxima Etapa</div>', unsafe_allow_html=True)
@@ -853,14 +1050,9 @@ def main():
                                     if melhor:
                                         data["solicitacoes"][i]["fornecedor_recomendado"] = melhor.get("fornecedor")
                                         data["solicitacoes"][i]["valor_estimado"] = melhor.get("valor")
-                                        # Notifica Diretoria quando valor excede limite de gerência
+                                        # Notifica Gerência&Diretoria quando há cotações para aprovação
                                         try:
-                                            lim_g = data.get("configuracoes", {}).get("limite_gerencia", 5000.0)
-                                            lim_d = data.get("configuracoes", {}).get("limite_diretoria", 15000.0)
-                                            if melhor.get("valor", 0) > lim_g:
-                                                add_notification(data, "Diretoria", numero_solicitacao, "Solicitação com valor acima do limite da Gerência aguardando aprovação.")
-                                            if melhor.get("valor", 0) > lim_d:
-                                                add_notification(data, "Gerência", numero_solicitacao, "Valor acima do limite da Diretoria também. Escalonado.")
+                                            add_notification(data, "Gerência&Diretoria", numero_solicitacao, "Solicitação com cotações aguardando aprovação.")
                                         except Exception:
                                             pass
                                 
@@ -885,7 +1077,7 @@ def main():
                                 # Notificação quando entra em aprovação
                                 if proxima_etapa == "Aguardando Aprovação":
                                     try:
-                                        add_notification(data, "Gerência", numero_solicitacao, "Solicitação aguardando aprovação.")
+                                        add_notification(data, "Gerência&Diretoria", numero_solicitacao, "Solicitação aguardando aprovação.")
                                     except Exception:
                                         pass
                                 
@@ -915,10 +1107,10 @@ def main():
     
     elif opcao == "📱 Aprovações":
         st.markdown('<div class="section-header">📱 Aprovações</div>', unsafe_allow_html=True)
-        st.markdown('<div class="info-box">🛡️ <strong>Somente Gerência, Diretoria ou Admin podem aprovar</strong></div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">🛡️ <strong>Somente Gerência&Diretoria ou Admin podem aprovar</strong></div>', unsafe_allow_html=True)
 
-        if perfil_atual not in ["Gerência", "Diretoria", "Admin"]:
-            st.info("Esta página é restrita a Gerência, Diretoria ou Admin.")
+        if perfil_atual not in ["Gerência&Diretoria", "Admin"]:
+            st.info("Esta página é restrita a Gerência&Diretoria ou Admin.")
         else:
             pendentes = [s for s in data.get("solicitacoes", []) if s.get("status") == "Aguardando Aprovação"]
             if not pendentes:
@@ -963,8 +1155,8 @@ def main():
                                 data["solicitacoes"][i]["status"] = novo_status
                                 data["solicitacoes"][i]["etapa_atual"] = novo_status
                                 data["solicitacoes"][i].setdefault("aprovacoes", []).append({
-                                    "nivel": perfil_atual,
-                                    "aprovador": perfil_atual,
+                                    "nivel": "Gerência&Diretoria",
+                                    "aprovador": nome_atual,
                                     "status": novo_status,
                                     "comentarios": comentarios,
                                     "data": datetime.datetime.now().isoformat()
@@ -995,34 +1187,95 @@ def main():
         st.markdown('<div class="info-box">📈 <strong>Visualização baseada nas abas da planilha Excel</strong></div>', unsafe_allow_html=True)
         
         if not data["solicitacoes"]:
-            st.warning("📋 Não há dados para exibir no dashboard.")
-            st.info("💡 Crie algumas solicitações primeiro!")
-            return
+            st.markdown('<div class="warning-box">📋 <strong>Não há dados para exibir no dashboard.</strong><br>💡 Crie algumas solicitações primeiro!</div>', unsafe_allow_html=True)
+        else:
+            # Métricas principais com cards customizados
+            col1, col2, col3, col4 = st.columns(4)
+            
+            total_solicitacoes = len(data["solicitacoes"])
+            pendentes = len([s for s in data["solicitacoes"] if s["status"] not in ["Aprovado", "Reprovado", "Finalizado"]])
+            aprovadas = len([s for s in data["solicitacoes"] if s["status"] == "Aprovado"])
+            em_atraso = len([s for s in data["solicitacoes"] if calcular_dias_uteis_decorridos(s["data_criacao"]) > obter_sla_por_prioridade(s["prioridade"]) and s["status"] not in ["Aprovado", "Reprovado", "Finalizado"]])
+            
+            with col1:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{total_solicitacoes}</p>
+                    <p class="metric-label">📋 Total de Solicitações</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{pendentes}</p>
+                    <p class="metric-label">⏳ Pendentes</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{aprovadas}</p>
+                    <p class="metric-label">✅ Aprovadas</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col4:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{em_atraso}</p>
+                    <p class="metric-label">🚨 Em Atraso</p>
+                </div>
+                """, unsafe_allow_html=True)
         
-        # Métricas principais
-        st.subheader("📈 Métricas Gerais")
-        col1, col2, col3, col4 = st.columns(4)
-        
-        total_solicitacoes = len(data["solicitacoes"])
-        finalizadas = len([s for s in data["solicitacoes"] if s["status"] == "Pedido Finalizado"])
-        em_andamento = total_solicitacoes - finalizadas
-        
-        # Calcula SLA
-        slas_cumpridos = len([s for s in data["solicitacoes"] if s.get("sla_cumprido") == "Sim"])
-        slas_nao_cumpridos = len([s for s in data["solicitacoes"] if s.get("sla_cumprido") == "Não"])
-        
-        with col1:
-            st.metric("Total Solicitações", total_solicitacoes)
-        with col2:
-            st.metric("Finalizadas", finalizadas)
-        with col3:
-            st.metric("Em Andamento", em_andamento)
-        with col4:
-            if finalizadas > 0:
-                taxa_sla = (slas_cumpridos / finalizadas) * 100
-                st.metric("Taxa SLA", f"{taxa_sla:.1f}%")
-            else:
-                st.metric("Taxa SLA", "N/A")
+            # Métricas secundárias
+            st.markdown('<h3 style="color: var(--ziran-gray); margin-top: 2rem; margin-bottom: 1rem;">📈 Métricas Detalhadas</h3>', unsafe_allow_html=True)
+            col1, col2, col3, col4 = st.columns(4)
+            
+            finalizadas = len([s for s in data["solicitacoes"] if s["status"] == "Pedido Finalizado"])
+            em_andamento = total_solicitacoes - finalizadas
+            
+            # Calcula SLA
+            slas_cumpridos = len([s for s in data["solicitacoes"] if s.get("sla_cumprido") == "Sim"])
+            slas_nao_cumpridos = len([s for s in data["solicitacoes"] if s.get("sla_cumprido") == "Não"])
+            
+            with col1:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{finalizadas}</p>
+                    <p class="metric-label">🏁 Finalizadas</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{em_andamento}</p>
+                    <p class="metric-label">⚡ Em Andamento</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{slas_cumpridos}</p>
+                    <p class="metric-label">✅ SLA Cumprido</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col4:
+                if finalizadas > 0:
+                    taxa_sla = (slas_cumpridos / finalizadas) * 100
+                    taxa_display = f"{taxa_sla:.1f}%"
+                else:
+                    taxa_display = "N/A"
+                st.markdown(f"""
+                <div class="stats-card">
+                    <p class="metric-value">{taxa_display}</p>
+                    <p class="metric-label">📊 Taxa SLA</p>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Distribuição por etapa
         st.subheader("🔄 Distribuição por Etapa")
@@ -1264,7 +1517,7 @@ def main():
             with col1:
                 novo_username = st.text_input("Usuário*")
                 novo_nome = st.text_input("Nome")
-                novo_perfil = st.selectbox("Perfil*", ["Solicitante", "Suprimentos", "Gerência", "Diretoria", "Admin"])
+                novo_perfil = st.selectbox("Perfil*", ["Solicitante", "Suprimentos", "Gerência&Diretoria", "Admin"])
             with col2:
                 novo_depart = st.selectbox("Departamento", DEPARTAMENTOS + ["Outro"])
                 nova_senha = st.text_input("Senha*", type="password")
