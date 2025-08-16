@@ -616,10 +616,15 @@ def main():
         st.markdown(f"**Nome:** {nome_atual}")
         st.markdown(f"**Perfil:** {perfil_atual}")
         if st.button("Sair"):
-            st.session_state.pop("usuario", None)
+            if USE_DATABASE:
+                session_manager = get_session_manager()
+                session_manager.logout()
+            else:
+                st.session_state.pop("usuario", None)
             try:
                 st.rerun()
             except Exception:
+                pass
                 st.experimental_rerun()
     
     # Notificações por perfil logado

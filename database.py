@@ -220,6 +220,20 @@ class DatabaseManager:
             return dict(row)
         return {}
     
+    def authenticate_user_by_username(self, username: str) -> Dict:
+        """Busca usuário apenas pelo username (para sessões)"""
+        cursor = self.conn.cursor()
+        cursor.execute('''
+        SELECT username, nome, perfil, departamento
+        FROM usuarios 
+        WHERE username = ?
+        ''', (username,))
+        
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
+        return {}
+    
     def get_all_users(self) -> List[Dict]:
         """Retorna todos os usuários"""
         cursor = self.conn.cursor()
