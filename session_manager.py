@@ -15,30 +15,43 @@ class SessionManager:
         """Cria nova sessão persistente"""
         session_id = str(uuid.uuid4())
         
-        # Salva no banco de dados
-        self.db.create_session(username, session_id)
+        # Tenta salvar no banco de dados
+        success = self.db.create_session(username, session_id)
         
-        # Salva no session_state do Streamlit
+        # Salva no session_state do Streamlit sempre
         st.session_state[self.session_key] = session_id
+        st.session_state["session_username"] = username
         
         return session_id
     
     def get_current_user(self) -> Optional[Dict]:
         """Retorna usuário da sessão atual"""
         session_id = st.session_state.get(self.session_key)
+        username = st.session_state.get("session_username")
         
-        if not session_id:
+        if not session_id or not username:
             return None
         
-        username = self.db.validate_session(session_id)
-        if not username:
-            # Sessão expirada ou inválida
-            self.logout()
-            return None
+        # Tenta validar no banco, mas usa fallback se não disponível
+        try:
+            db_username = self.db.validate_session(session_id)
+            if db_username:
+                user = self.db.authenticate_user_by_username(db_username)
+                if user:
+                    return user
+        except:
+            pass
         
-        # Busca dados do usuário
-        user = self.db.authenticate_user_by_username(username)
-        return user
+        # Fallback: usar dados do session_state
+        if username:
+            return {
+                "username": username,
+                "nome": username,
+                "perfil": "Solicitante",  # Perfil padrão
+                "departamento": "Outro"
+            }
+        
+        return None
     
     def login(self, username: str, password: str) -> bool:
         """Faz login e cria sessão persistente"""

@@ -10,6 +10,9 @@ class DatabaseManager:
     
     def __init__(self, use_cloud_db=False):
         self.use_cloud_db = use_cloud_db
+        self.db_available = False
+        self.conn = None
+        
         if use_cloud_db:
             # Para Streamlit Cloud - usar st.secrets para configuração
             self.setup_cloud_database()
@@ -20,9 +23,15 @@ class DatabaseManager:
     
     def setup_local_database(self):
         """Configura banco SQLite local"""
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
-        self.create_tables()
+        try:
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            self.create_tables()
+            self.db_available = True
+        except Exception as e:
+            print(f"SQLite setup failed: {e}")
+            self.db_available = False
+            self.conn = None
     
     def setup_cloud_database(self):
         """Configura banco para Streamlit Cloud"""
@@ -184,6 +193,9 @@ class DatabaseManager:
     
     def add_user(self, username: str, nome: str, perfil: str, departamento: str, senha_hash: str, is_hashed=False):
         """Adiciona usuário ao banco"""
+        if not self.db_available or not self.conn:
+            return False
+            
         cursor = self.conn.cursor()
         
         if not is_hashed:
@@ -201,24 +213,32 @@ class DatabaseManager:
             return True
         except sqlite3.IntegrityError:
             return False  # Usuário já existe
+        except Exception:
+            return False
     
     def authenticate_user(self, username: str, password: str) -> Dict:
         """Autentica usuário"""
-        import hashlib
-        SALT = "ziran_local_salt_v1"
-        senha_hash = hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
-        
-        cursor = self.conn.cursor()
-        cursor.execute('''
-        SELECT username, nome, perfil, departamento
-        FROM usuarios 
-        WHERE username = ? AND senha_hash = ?
-        ''', (username, senha_hash))
-        
-        row = cursor.fetchone()
-        if row:
-            return dict(row)
-        return {}
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            import hashlib
+            SALT = "ziran_local_salt_v1"
+            senha_hash = hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
+            
+            cursor = self.conn.cursor()
+            cursor.execute('''
+            SELECT username, nome, perfil, departamento
+            FROM usuarios 
+            WHERE username = ? AND senha_hash = ?
+            ''', (username, senha_hash))
+            
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+            return {}
+        except Exception:
+            return {}
     
     def authenticate_user_by_username(self, username: str) -> Dict:
         """Busca usuário apenas pelo username (para sessões)"""
@@ -242,14 +262,21 @@ class DatabaseManager:
     
     def create_session(self, username: str, session_id: str, expires_hours=24):
         """Cria sessão persistente"""
-        cursor = self.conn.cursor()
-        expires_at = datetime.datetime.now() + datetime.timedelta(hours=expires_hours)
-        
-        cursor.execute('''
-        INSERT OR REPLACE INTO sessoes (id, username, expires_at)
-        VALUES (?, ?, ?)
-        ''', (session_id, username, expires_at))
-        self.conn.commit()
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            expires_at = datetime.datetime.now() + datetime.timedelta(hours=expires_hours)
+            
+            cursor.execute('''
+            INSERT OR REPLACE INTO sessoes (id, username, expires_at)
+            VALUES (?, ?, ?)
+            ''', (session_id, username, expires_at))
+            self.conn.commit()
+            return True
+        except Exception:
+            return False
     
     def validate_session(self, session_id: str) -> str:
         """Valida sessão e retorna username"""

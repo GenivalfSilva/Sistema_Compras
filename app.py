@@ -13,9 +13,14 @@ try:
     from database import get_database
     from session_manager import get_session_manager
     USE_DATABASE = True
+    # Testa se o banco está disponível
+    db_test = get_database()
+    if not hasattr(db_test, 'db_available') or not db_test.db_available:
+        USE_DATABASE = False
+        st.info("💾 Usando modo JSON (banco não disponível no ambiente cloud)")
 except ImportError:
     USE_DATABASE = False
-    st.warning("⚠️ Módulos de banco não encontrados. Usando JSON local.")
+    st.info("💾 Usando modo JSON local")
 
 # Configuração da página
 st.set_page_config(
