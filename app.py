@@ -6,6 +6,7 @@ import json
 import os
 from typing import Dict, List
 import math
+import hashlib
 
 # Configuração da página
 st.set_page_config(
@@ -22,6 +23,9 @@ ETAPAS_PROCESSO = [
     "Solicitação",
     "Suprimentos", 
     "Em Cotação",
+    "Aguardando Aprovação",
+    "Aprovado",
+    "Reprovado",
     "Pedido Finalizado"
 ]
 
@@ -50,12 +54,19 @@ SLA_PADRAO = {
     "Baixa": 5
 }
 
+# Configurações de upload e anexos
+ALLOWED_FILE_TYPES = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"]
+UPLOAD_ROOT_DEFAULT = "uploads"
+
 def load_data() -> Dict:
     """Carrega os dados do arquivo JSON"""
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+                # Migração/normalização de dados antigos
+                data = migrate_data(data)
+                return data
         except:
             return init_empty_data()
     return init_empty_data()
@@ -68,14 +79,180 @@ def init_empty_data() -> Dict:
         "configuracoes": {
             "sla_por_departamento": {},
             "proximo_numero_solicitacao": 1,
-            "proximo_numero_pedido": 1
-        }
+            "proximo_numero_pedido": 1,
+            "limite_gerencia": 5000.0,
+            "limite_diretoria": 15000.0,
+            "upload_dir": UPLOAD_ROOT_DEFAULT
+        },
+        "notificacoes": [],
+        "usuarios": []
     }
 
 def save_data(data: Dict):
     """Salva os dados no arquivo JSON"""
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+
+def ensure_upload_dir(data: Dict):
+    """Garante que a pasta de upload exista."""
+    upload_dir = data.get("configuracoes", {}).get("upload_dir", UPLOAD_ROOT_DEFAULT)
+    if not upload_dir:
+        upload_dir = UPLOAD_ROOT_DEFAULT
+        data["configuracoes"]["upload_dir"] = upload_dir
+    os.makedirs(upload_dir, exist_ok=True)
+    return upload_dir
+
+def save_uploaded_files(files: List, base_dir: str) -> List[Dict]:
+    """Salva arquivos enviados e retorna metadados."""
+    saved = []
+    if not files:
+        return saved
+    os.makedirs(base_dir, exist_ok=True)
+    for f in files:
+        try:
+            filename = f.name
+            ext = filename.split('.')[-1].lower()
+            dest_path = os.path.join(base_dir, filename)
+            with open(dest_path, 'wb') as out:
+                out.write(f.getbuffer())
+            saved.append({
+                "nome_arquivo": filename,
+                "caminho": dest_path.replace('\\', '/'),
+                "tipo": ext,
+                "data_upload": datetime.datetime.now().isoformat()
+            })
+        except Exception as e:
+            # Ignora falhas individuais e segue com os demais
+            pass
+    return saved
+
+def migrate_data(data: Dict) -> Dict:
+    """Adiciona campos ausentes para compatibilidade com versões anteriores."""
+    if not isinstance(data, dict):
+        return init_empty_data()
+    cfg = data.setdefault("configuracoes", {})
+    cfg.setdefault("proximo_numero_solicitacao", 1)
+    cfg.setdefault("proximo_numero_pedido", 1)
+    cfg.setdefault("sla_por_departamento", {})
+    cfg.setdefault("limite_gerencia", 5000.0)
+    cfg.setdefault("limite_diretoria", 15000.0)
+    cfg.setdefault("upload_dir", UPLOAD_ROOT_DEFAULT)
+    data.setdefault("movimentacoes", [])
+    data.setdefault("notificacoes", [])
+    data.setdefault("usuarios", [])
+
+    for s in data.setdefault("solicitacoes", []):
+        s.setdefault("anexos_requisicao", [])
+        s.setdefault("cotacoes", [])
+        s.setdefault("aprovacoes", [])
+        s.setdefault("valor_estimado", None)
+        s.setdefault("valor_final", None)
+        s.setdefault("fornecedor_recomendado", None)
+        s.setdefault("fornecedor_final", None)
+        s.setdefault("etapa_atual", s.get("status", "Solicitação"))
+        s.setdefault("historico_etapas", [{
+            "etapa": s.get("status", "Solicitação"),
+            "data_entrada": s.get("carimbo_data_hora", datetime.datetime.now().isoformat()),
+            "usuario": "Sistema"
+        }])
+    return data
+
+def get_best_cotacao(cotacoes: List[Dict]) -> Dict:
+    """Retorna a melhor cotação (menor valor)."""
+    if not cotacoes:
+        return {}
+    best = None
+    for c in cotacoes:
+        if c.get("valor") is None:
+            continue
+        if best is None or c["valor"] < best["valor"]:
+            best = c
+    return best or {}
+
+def get_next_pending_approval(aprovacoes: List[Dict]) -> Dict:
+    """Retorna o próximo registro de aprovação pendente respeitando a ordem Gerência -> Diretoria."""
+    if not aprovacoes:
+        return {}
+    ordem = ["Gerência", "Diretoria"]
+    for nivel in ordem:
+        for a in aprovacoes:
+            if a.get("nivel") == nivel and a.get("status") == "Pendente":
+                return a
+    return {}
+
+def add_notification(data: Dict, perfil: str, numero: int, mensagem: str):
+    """Adiciona uma notificação interna para o perfil informado."""
+    try:
+        data.setdefault("notificacoes", [])
+        data["notificacoes"].append({
+            "perfil": perfil,
+            "numero": numero,
+            "mensagem": mensagem,
+            "data": datetime.datetime.now().isoformat(),
+            "lida": False
+        })
+    except Exception:
+        # Falha silenciosa para não interromper o fluxo
+        pass
+
+# ===== Autenticação simples (local) =====
+SALT = "ziran_local_salt_v1"
+
+def hash_password(password: str) -> str:
+    try:
+        return hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
+    except Exception:
+        return ""
+
+def find_user(data: Dict, username: str) -> Dict:
+    for u in data.get("usuarios", []):
+        if u.get("username", "").lower() == username.lower():
+            return u
+    return {}
+
+def authenticate_user(data: Dict, username: str, password: str) -> Dict:
+    user = find_user(data, username)
+    if not user:
+        return {}
+    if user.get("senha_hash") == hash_password(password):
+        return user
+    return {}
+
+def ensure_admin_user(data: Dict) -> bool:
+    """Garante um usuário admin inicial. Retorna True se criou."""
+    usuarios = data.setdefault("usuarios", [])
+    if any(u.get("perfil") == "Admin" for u in usuarios):
+        return False
+    admin_user = {
+        "username": "admin",
+        "nome": "Administrador",
+        "perfil": "Admin",
+        "departamento": "TI",
+        "senha_hash": hash_password("admin123")
+    }
+    usuarios.append(admin_user)
+    return True
+
+def add_user(data: Dict, username: str, nome: str, perfil: str, departamento: str, senha: str) -> str:
+    if not username or not senha or not perfil:
+        return "Preencha usuário, senha e perfil."
+    if find_user(data, username):
+        return "Usuário já existe."
+    data.setdefault("usuarios", []).append({
+        "username": username,
+        "nome": nome or username,
+        "perfil": perfil,
+        "departamento": departamento or "Outro",
+        "senha_hash": hash_password(senha)
+    })
+    return ""
+
+def reset_user_password(data: Dict, username: str, nova_senha: str) -> str:
+    user = find_user(data, username)
+    if not user:
+        return "Usuário não encontrado."
+    user["senha_hash"] = hash_password(nova_senha)
+    return ""
 
 def calcular_dias_uteis(data_inicio: datetime.datetime, data_fim: datetime.datetime = None) -> int:
     """Calcula dias úteis entre duas datas (excluindo fins de semana)"""
@@ -244,18 +421,91 @@ def main():
         st.sidebar.image("assets/img/logo_ziran.jpg", width=100)
         st.sidebar.markdown('</div>', unsafe_allow_html=True)
     
+    # ===== Login / Sessão =====
+    changed = ensure_admin_user(data)
+    if changed:
+        save_data(data)
+    
+    if "usuario" not in st.session_state:
+        st.sidebar.markdown("### 🔐 Login")
+        with st.sidebar.form("login_form"):
+            login_user = st.text_input("Usuário")
+            login_pass = st.text_input("Senha", type="password")
+            entrar = st.form_submit_button("Entrar")
+        if entrar:
+            u = authenticate_user(data, login_user.strip(), login_pass)
+            if u:
+                st.session_state["usuario"] = {
+                    "username": u.get("username"),
+                    "nome": u.get("nome", u.get("username")),
+                    "perfil": u.get("perfil"),
+                    "departamento": u.get("departamento", "Outro")
+                }
+                try:
+                    st.rerun()
+                except Exception:
+                    st.experimental_rerun()
+            else:
+                st.sidebar.error("Usuário ou senha inválidos.")
+        st.info("Faça login para acessar o sistema.")
+        return
+    
+    usuario = st.session_state.get("usuario", {})
+    perfil_atual = usuario.get("perfil", "Solicitante")
+    nome_atual = usuario.get("nome", usuario.get("username", "Usuário"))
+    
+    with st.sidebar.expander("👤 Usuário", expanded=True):
+        st.markdown(f"**Nome:** {nome_atual}")
+        st.markdown(f"**Perfil:** {perfil_atual}")
+        if st.button("Sair"):
+            st.session_state.pop("usuario", None)
+            try:
+                st.rerun()
+            except Exception:
+                st.experimental_rerun()
+    
+    # Notificações por perfil logado
+    notif_alvos = [perfil_atual] if perfil_atual != "Admin" else ["Gerência", "Diretoria", "Suprimentos"]
+    pend_notif = [n for n in data.get("notificacoes", []) if n.get("perfil") in notif_alvos and not n.get("lida")]
+    if pend_notif:
+        st.sidebar.markdown("### 🔔 Notificações")
+        for n in pend_notif[:5]:
+            st.sidebar.info(f"#{n.get('numero')} - {n.get('mensagem')}")
+
+    # Navegação por perfil
     st.sidebar.markdown("### 🔧 Navegação")
     st.sidebar.markdown("*Selecione uma opção abaixo:*")
-    opcao = st.sidebar.selectbox(
-        "Escolha uma opção:",
-        [
-            "📝 Nova Solicitação", 
-            "🔄 Mover para Próxima Etapa",
-            "📊 Dashboard SLA", 
-            "📚 Histórico por Etapa",
-            "⚙️ Configurações SLA"
+    def opcoes_por_perfil(p: str) -> List[str]:
+        if p == "Admin":
+            return [
+                "📝 Nova Solicitação",
+                "🔄 Mover para Próxima Etapa",
+                "📱 Aprovações",
+                "📊 Dashboard SLA",
+                "📚 Histórico por Etapa",
+                "⚙️ Configurações SLA",
+                "👥 Gerenciar Usuários"
+            ]
+        if p in ("Gerência", "Diretoria"):
+            return [
+                "📱 Aprovações",
+                "📊 Dashboard SLA",
+                "📚 Histórico por Etapa"
+            ]
+        if p == "Suprimentos":
+            return [
+                "🔄 Mover para Próxima Etapa",
+                "📊 Dashboard SLA",
+                "📚 Histórico por Etapa"
+            ]
+        # Solicitante
+        return [
+            "📝 Nova Solicitação",
+            "📊 Dashboard SLA",
+            "📚 Histórico por Etapa"
         ]
-    )
+    opcoes = opcoes_por_perfil(perfil_atual)
+    opcao = st.sidebar.selectbox("Escolha uma opção:", opcoes)
     
     # Estatísticas rápidas com design melhorado
     st.sidebar.markdown("---")
@@ -337,6 +587,13 @@ def main():
                 sla_dias = obter_sla_por_prioridade(prioridade if 'prioridade' in locals() else "Normal")
                 st.info(f"📅 SLA para prioridade '{prioridade if 'prioridade' in locals() else 'Normal'}': {sla_dias} dias úteis")
             
+            # Anexos da Solicitação (opcional)
+            anexos_files = st.file_uploader(
+                "Anexos da Solicitação (opcional)",
+                type=ALLOWED_FILE_TYPES,
+                accept_multiple_files=True
+            )
+            
             # Campos opcionais/futuros
             st.markdown("---")
             st.markdown("**Campos de Controle (preenchidos automaticamente)**")
@@ -369,6 +626,11 @@ def main():
                     # Calcula SLA baseado na prioridade
                     sla_dias = obter_sla_por_prioridade(prioridade, departamento)
                     
+                    # Salva anexos da solicitação
+                    upload_root = ensure_upload_dir(data)
+                    sol_dir = os.path.join(upload_root, f"solicitacao_{numero_solicitacao}", "requisicao")
+                    anexos_meta = save_uploaded_files(anexos_files, sol_dir)
+                    
                     nova_solicitacao = {
                         # Campos da planilha Excel
                         "carimbo_data_hora": datetime.datetime.now().isoformat(),
@@ -387,6 +649,13 @@ def main():
                         "dias_atendimento": None,
                         "sla_cumprido": None,
                         "observacoes": None,
+                        "anexos_requisicao": anexos_meta,
+                        "cotacoes": [],
+                        "aprovacoes": [],
+                        "valor_estimado": None,
+                        "valor_final": None,
+                        "fornecedor_recomendado": None,
+                        "fornecedor_final": None,
                         
                         # Campos de controle interno
                         "id": len(data["solicitacoes"]) + 1,
@@ -479,6 +748,10 @@ def main():
             elif etapa_atual == "Suprimentos":
                 proxima_etapa = "Em Cotação"
             elif etapa_atual == "Em Cotação":
+                proxima_etapa = "Aguardando Aprovação"
+            elif etapa_atual == "Aguardando Aprovação":
+                proxima_etapa = None  # Aprovações ocorrem na página 📱 Aprovações
+            elif etapa_atual == "Aprovado":
                 proxima_etapa = "Pedido Finalizado"
             
             if proxima_etapa:
@@ -503,6 +776,25 @@ def main():
                         with col2:
                             data_cotacao = st.date_input("Data Cotação", value=date.today())
                             observacoes = st.text_area("Observações", height=100)
+                    
+                    elif proxima_etapa == "Aguardando Aprovação":
+                        st.markdown("**🧾 Registrar Cotações (mín. 1, ideal 3)**")
+                        st.info("Cadastre as cotações recebidas para seguir para aprovação. Anexe os documentos se possível.")
+                        cotacoes_input = []
+                        for idx in range(1, 4):
+                            with st.expander(f"Cotação {idx}", expanded=(idx == 1)):
+                                fornecedor = st.text_input(f"Fornecedor {idx}", key=f"cot_fornecedor_{numero_solicitacao}_{idx}")
+                                valor = st.number_input(f"Valor {idx} (R$)", min_value=0.0, step=0.01, key=f"cot_valor_{numero_solicitacao}_{idx}")
+                                prazo = st.number_input(f"Prazo {idx} (dias)", min_value=0, step=1, key=f"cot_prazo_{numero_solicitacao}_{idx}")
+                                validade = st.date_input(f"Validade {idx}", value=date.today(), key=f"cot_validade_{numero_solicitacao}_{idx}")
+                                anexos = st.file_uploader(
+                                    f"Anexos Cotação {idx}",
+                                    type=ALLOWED_FILE_TYPES,
+                                    accept_multiple_files=True,
+                                    key=f"cot_anexos_{numero_solicitacao}_{idx}"
+                                )
+                                obs_c = st.text_area(f"Observações {idx}", key=f"cot_obs_{numero_solicitacao}_{idx}")
+                                cotacoes_input.append((fornecedor, valor, prazo, validade, anexos, obs_c))
                     
                     elif proxima_etapa == "Pedido Finalizado":
                         st.markdown("**✅ Finalização do Pedido**")
@@ -537,9 +829,48 @@ def main():
                                     data["solicitacoes"][i]["data_numero_pedido"] = data_pedido.isoformat()
                                     if 'data_cotacao' in locals():
                                         data["solicitacoes"][i]["data_cotacao"] = data_cotacao.isoformat()
+                                elif proxima_etapa == "Aguardando Aprovação":
+                                    cotacoes_salvas = []
+                                    upload_root = ensure_upload_dir(data)
+                                    for idx, (fornecedor, valor, prazo, validade, anexos, obs_c) in enumerate(cotacoes_input, start=1):
+                                        try:
+                                            if fornecedor and valor and float(valor) > 0:
+                                                cot_dir = os.path.join(upload_root, f"solicitacao_{numero_solicitacao}", "cotacoes", f"cotacao_{idx}")
+                                                anexos_meta = save_uploaded_files(anexos, cot_dir)
+                                                cotacoes_salvas.append({
+                                                    "fornecedor": fornecedor,
+                                                    "valor": float(valor),
+                                                    "prazo": int(prazo) if prazo is not None else None,
+                                                    "validade": validade.isoformat() if hasattr(validade, 'isoformat') else str(validade),
+                                                    "observacoes": obs_c,
+                                                    "anexos": anexos_meta
+                                                })
+                                        except Exception:
+                                            pass
+                                    # Persiste cotações e recomenda melhor
+                                    data["solicitacoes"][i]["cotacoes"] = cotacoes_salvas
+                                    melhor = get_best_cotacao(cotacoes_salvas)
+                                    if melhor:
+                                        data["solicitacoes"][i]["fornecedor_recomendado"] = melhor.get("fornecedor")
+                                        data["solicitacoes"][i]["valor_estimado"] = melhor.get("valor")
+                                        # Notifica Diretoria quando valor excede limite de gerência
+                                        try:
+                                            lim_g = data.get("configuracoes", {}).get("limite_gerencia", 5000.0)
+                                            lim_d = data.get("configuracoes", {}).get("limite_diretoria", 15000.0)
+                                            if melhor.get("valor", 0) > lim_g:
+                                                add_notification(data, "Diretoria", numero_solicitacao, "Solicitação com valor acima do limite da Gerência aguardando aprovação.")
+                                            if melhor.get("valor", 0) > lim_d:
+                                                add_notification(data, "Gerência", numero_solicitacao, "Valor acima do limite da Diretoria também. Escalonado.")
+                                        except Exception:
+                                            pass
                                 
                                 elif proxima_etapa == "Pedido Finalizado":
                                     data["solicitacoes"][i]["data_entrega"] = data_entrega.isoformat()
+                                    # Persistir dados finais
+                                    if 'valor_final' in locals():
+                                        data["solicitacoes"][i]["valor_final"] = valor_final
+                                    if 'fornecedor_final' in locals():
+                                        data["solicitacoes"][i]["fornecedor_final"] = fornecedor_final
                                     
                                     # Calcula dias de atendimento e SLA
                                     data_inicio = datetime.datetime.fromisoformat(s["carimbo_data_hora"])
@@ -550,6 +881,13 @@ def main():
                                     data["solicitacoes"][i]["sla_cumprido"] = verificar_sla_cumprido(
                                         dias_atendimento, s["sla_dias"]
                                     )
+                                
+                                # Notificação quando entra em aprovação
+                                if proxima_etapa == "Aguardando Aprovação":
+                                    try:
+                                        add_notification(data, "Gerência", numero_solicitacao, "Solicitação aguardando aprovação.")
+                                    except Exception:
+                                        pass
                                 
                                 # Atualiza observações
                                 if 'observacoes' in locals() and observacoes:
@@ -575,6 +913,83 @@ def main():
             else:
                 st.info("✅ Esta solicitação já está finalizada!")
     
+    elif opcao == "📱 Aprovações":
+        st.markdown('<div class="section-header">📱 Aprovações</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">🛡️ <strong>Somente Gerência, Diretoria ou Admin podem aprovar</strong></div>', unsafe_allow_html=True)
+
+        if perfil_atual not in ["Gerência", "Diretoria", "Admin"]:
+            st.info("Esta página é restrita a Gerência, Diretoria ou Admin.")
+        else:
+            pendentes = [s for s in data.get("solicitacoes", []) if s.get("status") == "Aguardando Aprovação"]
+            if not pendentes:
+                st.success("✅ Não há solicitações pendentes de aprovação.")
+            else:
+                opcoes = []
+                for s in pendentes:
+                    data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                    opcoes.append(f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['departamento']} - {s['prioridade']} ({data_criacao})")
+
+                escolha = st.selectbox("Selecione a solicitação para aprovar:", opcoes)
+                if escolha:
+                    numero_solicitacao = int(escolha.split('#')[1].split(' -')[0])
+                    sol = next(s for s in pendentes if s['numero_solicitacao_estoque'] == numero_solicitacao)
+
+                    st.subheader(f"Detalhes da Solicitação #{numero_solicitacao}")
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Prioridade", sol.get('prioridade', 'N/A'))
+                        st.metric("SLA (dias)", sol.get('sla_dias', 'N/A'))
+                    with col2:
+                        data_criacao_dt = datetime.datetime.fromisoformat(sol["carimbo_data_hora"]) 
+                        st.metric("Dias decorridos", calcular_dias_uteis(data_criacao_dt))
+                    with col3:
+                        anexos_qtd = len(sol.get('anexos_requisicao', []))
+                        st.metric("Anexos", anexos_qtd)
+
+                    st.markdown("**Descrição**")
+                    st.write(sol.get('descricao', ''))
+
+                    comentarios = st.text_area("Comentários (opcional)", key=f"aprov_coment_{numero_solicitacao}")
+                    a1, a2 = st.columns(2)
+                    with a1:
+                        aprovar = st.button("✅ Aprovar", key=f"aprovar_{numero_solicitacao}")
+                    with a2:
+                        reprovar = st.button("❌ Reprovar", key=f"reprovar_{numero_solicitacao}")
+
+                    if aprovar or reprovar:
+                        for i, s in enumerate(data["solicitacoes"]):
+                            if s["numero_solicitacao_estoque"] == numero_solicitacao:
+                                novo_status = "Aprovado" if aprovar else "Reprovado"
+                                data["solicitacoes"][i]["status"] = novo_status
+                                data["solicitacoes"][i]["etapa_atual"] = novo_status
+                                data["solicitacoes"][i].setdefault("aprovacoes", []).append({
+                                    "nivel": perfil_atual,
+                                    "aprovador": perfil_atual,
+                                    "status": novo_status,
+                                    "comentarios": comentarios,
+                                    "data": datetime.datetime.now().isoformat()
+                                })
+                                data["solicitacoes"][i]["historico_etapas"].append({
+                                    "etapa": novo_status,
+                                    "data_entrada": datetime.datetime.now().isoformat(),
+                                    "usuario": f"Aprovação - {perfil_atual}"
+                                })
+                                # Notificação
+                                try:
+                                    if novo_status == "Aprovado":
+                                        add_notification(data, "Suprimentos", numero_solicitacao, "Solicitação aprovada. Prosseguir com pedido.")
+                                    else:
+                                        add_notification(data, "Solicitante", numero_solicitacao, "Solicitação reprovada.")
+                                except Exception:
+                                    pass
+                                break
+                        save_data(data)
+                        if aprovar:
+                            st.success("✅ Solicitação aprovada com sucesso! Avance para 'Pedido Finalizado'.")
+                        else:
+                            st.warning("❌ Solicitação reprovada.")
+                        st.rerun()
+
     elif opcao == "📊 Dashboard SLA":
         st.markdown('<div class="section-header">📊 Dashboard SLA</div>', unsafe_allow_html=True)
         st.markdown('<div class="info-box">📈 <strong>Visualização baseada nas abas da planilha Excel</strong></div>', unsafe_allow_html=True)
@@ -837,6 +1252,63 @@ def main():
         
         st.info("💡 Os SLAs são aplicados automaticamente baseados na prioridade da solicitação.")
         st.info("📊 Use o Dashboard SLA para monitorar a performance e ajustar os SLAs conforme necessário.")
+    
+    elif opcao == "👥 Gerenciar Usuários":
+        if perfil_atual != "Admin":
+            st.error("Acesso restrito ao Admin.")
+            return
+        st.markdown('<div class="section-header">👥 Gerenciar Usuários</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">Crie usuários, defina perfis e redefina senhas.</div>', unsafe_allow_html=True)
+        with st.form("novo_usuario_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                novo_username = st.text_input("Usuário*")
+                novo_nome = st.text_input("Nome")
+                novo_perfil = st.selectbox("Perfil*", ["Solicitante", "Suprimentos", "Gerência", "Diretoria", "Admin"])
+            with col2:
+                novo_depart = st.selectbox("Departamento", DEPARTAMENTOS + ["Outro"])
+                nova_senha = st.text_input("Senha*", type="password")
+                nova_senha2 = st.text_input("Confirmar Senha*", type="password")
+            criar = st.form_submit_button("➕ Criar Usuário")
+        if criar:
+            if not nova_senha or nova_senha != nova_senha2:
+                st.error("Senhas não conferem.")
+            else:
+                erro = add_user(data, novo_username.strip(), novo_nome.strip(), novo_perfil, novo_depart, nova_senha)
+                if erro:
+                    st.error(erro)
+                else:
+                    save_data(data)
+                    st.success(f"Usuário '{novo_username}' criado com sucesso.")
+        
+        st.markdown("---")
+        st.subheader("Usuários Atuais")
+        usuarios_df = pd.DataFrame([
+            {"Usuário": u.get("username"), "Nome": u.get("nome"), "Perfil": u.get("perfil"), "Departamento": u.get("departamento")}
+            for u in data.get("usuarios", [])
+        ])
+        if not usuarios_df.empty:
+            st.dataframe(usuarios_df, use_container_width=True)
+        else:
+            st.info("Nenhum usuário cadastrado além do admin.")
+        
+        st.markdown("---")
+        st.subheader("Redefinir Senha")
+        with st.form("reset_senha_form"):
+            r_user = st.selectbox("Usuário", [u.get("username") for u in data.get("usuarios", [])])
+            r_senha = st.text_input("Nova senha", type="password")
+            r_senha2 = st.text_input("Confirmar nova senha", type="password")
+            bt_reset = st.form_submit_button("🔒 Redefinir")
+        if bt_reset:
+            if not r_senha or r_senha != r_senha2:
+                st.error("Senhas não conferem.")
+            else:
+                erro = reset_user_password(data, r_user, r_senha)
+                if erro:
+                    st.error(erro)
+                else:
+                    save_data(data)
+                    st.success(f"Senha de '{r_user}' redefinida com sucesso.")
     
     else:
         st.error("❌ Opção não implementada ainda.")
