@@ -8,6 +8,15 @@ from typing import Dict, List
 import math
 import hashlib
 
+# Importa novos módulos para banco de dados e sessões
+try:
+    from database import get_database
+    from session_manager import get_session_manager
+    USE_DATABASE = True
+except ImportError:
+    USE_DATABASE = False
+    st.warning("⚠️ Módulos de banco não encontrados. Usando JSON local.")
+
 # Configuração da página
 st.set_page_config(
     page_title="Sistema de Gestão de Compras - SLA",
@@ -209,12 +218,16 @@ def find_user(data: Dict, username: str) -> Dict:
     return {}
 
 def authenticate_user(data: Dict, username: str, password: str) -> Dict:
-    user = find_user(data, username)
-    if not user:
+    if USE_DATABASE:
+        db = get_database()
+        return db.authenticate_user(username, password)
+    else:
+        user = find_user(data, username)
+        if not user:
+            return {}
+        if user.get("senha_hash") == hash_password(password):
+            return user
         return {}
-    if user.get("senha_hash") == hash_password(password):
-        return user
-    return {}
 
 def ensure_admin_user(data: Dict) -> bool:
     """Garante um usuário admin inicial. Retorna True se criou."""
