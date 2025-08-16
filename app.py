@@ -365,14 +365,15 @@ def main():
         opacity: 0.9;
     }
     .brand-text {
-        color: var(--ziran-white);
+        color: var(--ziran-gray);
         font-weight: 600;
         font-size: 1rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        background: rgba(255, 255, 255, 0.1);
+        text-shadow: none;
+        background: rgba(255, 255, 255, 0.9);
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
         display: inline-block;
+        border: 1px solid rgba(45, 55, 72, 0.1);
     }
     .section-header {
         background: linear-gradient(135deg, var(--ziran-red) 0%, var(--ziran-red-dark) 100%);
