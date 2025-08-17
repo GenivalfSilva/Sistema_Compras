@@ -72,6 +72,32 @@ SLA_PADRAO = {
     "Baixa": 5
 }
 
+# Unidades e catálogo de produtos padrão
+UNIDADES_PADRAO = [
+    "UN", "PC", "CX", "KG", "L", "M", "M2"
+]
+
+def get_default_product_catalog() -> List[Dict]:
+    """Retorna um catálogo inicial editável de produtos."""
+    return [
+        {"codigo": "PRD-001", "nome": "Cabo de Rede Cat6", "categoria": "TI", "unidade": "UN", "ativo": True},
+        {"codigo": "PRD-002", "nome": "Notebook 14\"", "categoria": "TI", "unidade": "UN", "ativo": True},
+        {"codigo": "PRD-003", "nome": "Tinta Látex Branca", "categoria": "Manutenção", "unidade": "L", "ativo": True},
+        {"codigo": "PRD-004", "nome": "Parafuso 5mm", "categoria": "Manutenção", "unidade": "CX", "ativo": True},
+        {"codigo": "PRD-005", "nome": "Papel A4 75g", "categoria": "Escritório", "unidade": "CX", "ativo": True},
+    ]
+
+def render_data_editor(df: pd.DataFrame, key: str = None, **kwargs) -> pd.DataFrame:
+    """Tenta usar st.data_editor; faz fallback para experimental_data_editor; por fim, mostra dataframe somente leitura."""
+    try:
+        return st.data_editor(df, key=key, **kwargs)
+    except Exception:
+        try:
+            return st.experimental_data_editor(df, key=key, **kwargs)  # type: ignore[attr-defined]
+        except Exception:
+            st.dataframe(df, use_container_width=True)
+            return df
+
 # Configurações de upload e anexos
 ALLOWED_FILE_TYPES = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"]
 UPLOAD_ROOT_DEFAULT = "uploads"
@@ -100,7 +126,8 @@ def init_empty_data() -> Dict:
             "proximo_numero_pedido": 1,
             "limite_gerencia": 5000.0,
             "limite_diretoria": 15000.0,
-            "upload_dir": UPLOAD_ROOT_DEFAULT
+            "upload_dir": UPLOAD_ROOT_DEFAULT,
+            "catalogo_produtos": get_default_product_catalog()
         },
         "notificacoes": [],
         "usuarios": []
@@ -155,6 +182,7 @@ def migrate_data(data: Dict) -> Dict:
     cfg.setdefault("limite_gerencia", 5000.0)
     cfg.setdefault("limite_diretoria", 15000.0)
     cfg.setdefault("upload_dir", UPLOAD_ROOT_DEFAULT)
+    cfg.setdefault("catalogo_produtos", get_default_product_catalog())
     data.setdefault("movimentacoes", [])
     data.setdefault("notificacoes", [])
     data.setdefault("usuarios", [])
@@ -173,6 +201,11 @@ def migrate_data(data: Dict) -> Dict:
             "data_entrada": s.get("carimbo_data_hora", datetime.datetime.now().isoformat()),
             "usuario": "Sistema"
         }])
+        s.setdefault("itens", [])
+        s.setdefault("local_aplicacao", None)
+        s.setdefault("numero_requisicao_interno", None)
+        s.setdefault("data_requisicao_interna", None)
+        s.setdefault("responsavel_suprimentos", None)
     return data
 
 def get_best_cotacao(cotacoes: List[Dict]) -> Dict:
@@ -658,10 +691,12 @@ def main():
         if p == "Admin":
             return [
                 "📝 Nova Solicitação",
+                "📑 Requisição (Estoque)",
                 "🔄 Mover para Próxima Etapa",
                 "📱 Aprovações",
                 "📊 Dashboard SLA",
                 "📚 Histórico por Etapa",
+                "📦 Catálogo de Produtos",
                 "⚙️ Configurações SLA",
                 "👥 Gerenciar Usuários"
             ]
@@ -673,9 +708,11 @@ def main():
             ]
         if p == "Suprimentos":
             return [
+                "📑 Requisição (Estoque)",
                 "🔄 Mover para Próxima Etapa",
                 "📊 Dashboard SLA",
-                "📚 Histórico por Etapa"
+                "📚 Histórico por Etapa",
+                "📦 Catálogo de Produtos"
             ]
         # Solicitante
         return [
@@ -779,9 +816,63 @@ def main():
                     help="Descrição detalhada da solicitação",
                     placeholder="Descreva detalhadamente o que está sendo solicitado..."
                 )
-            
-            # Campo "Aplicação (Código)" removido do formulário
-            
+            # Campo Local de Aplicação
+            local_aplicacao = st.text_input(
+                "Local de Aplicação*",
+                help="Onde o material será aplicado (ex: Linha 3, Sala 201, Equipamento X)"
+            )
+
+            # Itens da Solicitação (lista padronizada)
+            st.markdown('<div class="form-section">', unsafe_allow_html=True)
+            st.markdown('<h3>🧾 Itens da Solicitação</h3>', unsafe_allow_html=True)
+            catalogo = data.get("configuracoes", {}).get("catalogo_produtos", [])
+            if not catalogo:
+                st.warning("Catálogo de produtos vazio. Configure em '📦 Catálogo de Produtos'.")
+                itens_editados = pd.DataFrame([{"codigo": "", "quantidade": 1}])
+            else:
+                # DataFrame inicial
+                itens_df_init = pd.DataFrame([{"codigo": "", "quantidade": 1}])
+                try:
+                    # Tenta configurar colunas com selectbox/number quando disponível
+                    if hasattr(st, "column_config"):
+                        col_cfg = {
+                            "codigo": st.column_config.SelectboxColumn(
+                                "Código do Produto",
+                                options=[c.get("codigo") for c in catalogo if c.get("ativo", True)],
+                                help="Selecione um código válido do catálogo"
+                            ),
+                            "quantidade": st.column_config.NumberColumn(
+                                "Quantidade",
+                                min_value=1,
+                                step=1,
+                                help="Informe a quantidade desejada"
+                            )
+                        }
+                        itens_editados = render_data_editor(
+                            itens_df_init,
+                            key="itens_editor",
+                            use_container_width=True,
+                            num_rows="dynamic",
+                            column_config=col_cfg,
+                            hide_index=True
+                        )
+                    else:
+                        itens_editados = render_data_editor(
+                            itens_df_init,
+                            key="itens_editor",
+                            use_container_width=True,
+                            num_rows="dynamic"
+                        )
+                except Exception:
+                    itens_editados = render_data_editor(
+                        itens_df_init,
+                        key="itens_editor",
+                        use_container_width=True,
+                        num_rows="dynamic"
+                    )
+                st.info("Adicione linhas e selecione o código do produto e a quantidade. Linhas vazias serão ignoradas.")
+            st.markdown('</div>', unsafe_allow_html=True)
+
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Seção 3: Anexos
@@ -842,7 +933,32 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
         
         if submitted:
-            if solicitante and departamento and descricao:
+            # Prepara itens estruturados
+            itens_struct = []
+            try:
+                catalog_map = {c.get("codigo"): c for c in data.get("configuracoes", {}).get("catalogo_produtos", [])}
+                if 'itens_editados' in locals() and isinstance(itens_editados, pd.DataFrame):
+                    for r in itens_editados.to_dict(orient="records"):
+                        cod = (r.get("codigo") or "").strip()
+                        if not cod:
+                            continue
+                        prod = catalog_map.get(cod)
+                        qtd = r.get("quantidade")
+                        try:
+                            qtd_val = int(qtd) if float(qtd) == int(qtd) else float(qtd)
+                        except Exception:
+                            qtd_val = None
+                        if prod and qtd_val and qtd_val > 0:
+                            itens_struct.append({
+                                "codigo": cod,
+                                "nome": prod.get("nome"),
+                                "unidade": prod.get("unidade"),
+                                "quantidade": qtd_val
+                            })
+            except Exception:
+                itens_struct = []
+
+            if solicitante and departamento and descricao and local_aplicacao and len(itens_struct) > 0:
                 # Gera números automáticos
                 numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
                 data["configuracoes"]["proximo_numero_solicitacao"] += 1
@@ -862,7 +978,7 @@ def main():
                     "departamento": departamento,
                     "prioridade": prioridade,
                     "descricao": descricao,
-                    # Campo "aplicacao" removido
+                    "local_aplicacao": local_aplicacao,
                     "status": "Solicitação",  # Primeira etapa
                     "numero_solicitacao_estoque": numero_solicitacao,
                     "numero_pedido_compras": None,
@@ -873,6 +989,10 @@ def main():
                     "dias_atendimento": None,
                     "sla_cumprido": None,
                     "observacoes": None,
+                    "numero_requisicao_interno": None,
+                    "data_requisicao_interna": None,
+                    "responsavel_suprimentos": None,
+                    "itens": itens_struct,
                     "anexos_requisicao": anexos_meta,
                     "cotacoes": [],
                     "aprovacoes": [],
@@ -905,6 +1025,7 @@ def main():
                 with col_info2:
                     st.markdown(f"**📊 Status:** Solicitação (Etapa 1 de 7)")
                     st.markdown(f"**📎 Anexos:** {len(anexos_meta)} arquivo(s)")
+                st.markdown(f"**🧾 Itens:** {len(itens_struct)} item(ns)")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
                 
@@ -919,7 +1040,7 @@ def main():
             else:
                 st.markdown('<div class="warning-box">', unsafe_allow_html=True)
                 st.markdown('<h4 style="color: #92400e; margin: 0 0 0.5rem 0;">⚠️ Campos Obrigatórios</h4>', unsafe_allow_html=True)
-                st.markdown("Por favor, preencha todos os campos marcados com **asterisco (*)** antes de continuar.")
+                st.markdown("Por favor, preencha todos os campos marcados com **asterisco (*)** e adicione ao menos 1 item válido antes de continuar.")
                 st.markdown('</div>', unsafe_allow_html=True)
     
     elif opcao == "🔄 Mover para Próxima Etapa":
@@ -1002,7 +1123,7 @@ def main():
                         st.markdown("**📦 Dados para Suprimentos**")
                         col1, col2 = st.columns(2)
                         with col1:
-                            responsavel = st.text_input("Responsável Suprimentos*")
+                            responsavel = st.text_input("Responsável Suprimentos*", value=solicitacao.get("responsavel_suprimentos") or nome_atual)
                         with col2:
                             observacoes = st.text_area("Observações", height=100)
                     
@@ -1014,6 +1135,7 @@ def main():
                             data_pedido = st.date_input("Data Nº Pedido*", value=date.today())
                         with col2:
                             data_cotacao = st.date_input("Data Cotação", value=date.today())
+                            resp_supr = st.text_input("Responsável Suprimentos*", value=solicitacao.get("responsavel_suprimentos") or nome_atual)
                             observacoes = st.text_area("Observações", height=100)
                     
                     elif proxima_etapa == "Aguardando Aprovação":
@@ -1048,6 +1170,14 @@ def main():
                     submitted = st.form_submit_button(f"🚀 Mover para {proxima_etapa}", use_container_width=True)
                     
                     if submitted:
+                        # Valida campos obrigatórios por etapa
+                        if proxima_etapa == "Suprimentos" and not ("responsavel" in locals() and responsavel):
+                            st.warning("Preencha o campo 'Responsável Suprimentos*'.")
+                            st.stop()
+                        if proxima_etapa == "Em Cotação" and not ("resp_supr" in locals() and resp_supr):
+                            st.warning("Informe o 'Responsável Suprimentos*' para a etapa de cotação.")
+                            st.stop()
+                        
                         # Atualiza a solicitação
                         for i, s in enumerate(data["solicitacoes"]):
                             if s["numero_solicitacao_estoque"] == numero_solicitacao:
@@ -1059,15 +1189,19 @@ def main():
                                 data["solicitacoes"][i]["historico_etapas"].append({
                                     "etapa": proxima_etapa,
                                     "data_entrada": datetime.datetime.now().isoformat(),
-                                    "usuario": responsavel if 'responsavel' in locals() else "Sistema"
+                                    "usuario": (responsavel if 'responsavel' in locals() and responsavel else (resp_supr if 'resp_supr' in locals() and resp_supr else nome_atual))
                                 })
                                 
                                 # Atualiza campos específicos
+                                if proxima_etapa == "Suprimentos" and 'responsavel' in locals() and responsavel:
+                                    data["solicitacoes"][i]["responsavel_suprimentos"] = responsavel
                                 if proxima_etapa == "Em Cotação" and 'numero_pedido' in locals():
                                     data["solicitacoes"][i]["numero_pedido_compras"] = numero_pedido
                                     data["solicitacoes"][i]["data_numero_pedido"] = data_pedido.isoformat()
                                     if 'data_cotacao' in locals():
                                         data["solicitacoes"][i]["data_cotacao"] = data_cotacao.isoformat()
+                                    if 'resp_supr' in locals() and resp_supr:
+                                        data["solicitacoes"][i]["responsavel_suprimentos"] = resp_supr
                                 elif proxima_etapa == "Aguardando Aprovação":
                                     cotacoes_salvas = []
                                     upload_root = ensure_upload_dir(data)
@@ -1147,6 +1281,160 @@ def main():
             else:
                 st.info("✅ Esta solicitação já está finalizada!")
     
+    elif opcao == "📑 Requisição (Estoque)":
+        st.markdown('<div class="section-header">📑 Requisição (Estoque)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">🧭 <strong>Lançar número de requisição interna e encaminhar para Suprimentos</strong></div>', unsafe_allow_html=True)
+
+        if perfil_atual not in ["Suprimentos", "Admin"]:
+            st.info("Esta página é restrita a Suprimentos ou Admin.")
+        else:
+            pend = [s for s in data.get("solicitacoes", []) if s.get("status") == "Solicitação"]
+            if not pend:
+                st.success("✅ Não há solicitações aguardando requisição interna.")
+            else:
+                opcoes = []
+                for s in pend:
+                    data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                    opcoes.append(f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['departamento']} ({data_criacao})")
+
+                escolha = st.selectbox("Selecione a solicitação:", opcoes)
+                if escolha:
+                    numero_solicitacao = int(escolha.split('#')[1].split(' -')[0])
+                    sol = next(s for s in pend if s['numero_solicitacao_estoque'] == numero_solicitacao)
+
+                    with st.form("lançar_requisicao_form"):
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            num_req = st.text_input("Nº Requisição Interna*", value=sol.get("numero_requisicao_interno") or "")
+                            data_req = st.date_input("Data Requisição*", value=date.today())
+                        with col2:
+                            resp = st.text_input("Responsável (Suprimentos)", value=sol.get("responsavel_suprimentos") or nome_atual)
+                            obs_req = st.text_area("Observações", height=100)
+                        confirmar = st.form_submit_button("Salvar e Enviar para Suprimentos", use_container_width=True)
+
+                    if confirmar:
+                        if num_req.strip():
+                            for i, s in enumerate(data["solicitacoes"]):
+                                if s["numero_solicitacao_estoque"] == numero_solicitacao:
+                                    data["solicitacoes"][i]["numero_requisicao_interno"] = num_req.strip()
+                                    data["solicitacoes"][i]["data_requisicao_interna"] = data_req.isoformat()
+                                    if resp:
+                                        data["solicitacoes"][i]["responsavel_suprimentos"] = resp
+                                    data["solicitacoes"][i]["observacoes"] = obs_req or s.get("observacoes")
+                                    # Muda etapa para Suprimentos
+                                    data["solicitacoes"][i]["status"] = "Suprimentos"
+                                    data["solicitacoes"][i]["etapa_atual"] = "Suprimentos"
+                                    data["solicitacoes"][i]["historico_etapas"].append({
+                                        "etapa": "Suprimentos",
+                                        "data_entrada": datetime.datetime.now().isoformat(),
+                                        "usuario": nome_atual
+                                    })
+                                    try:
+                                        add_notification(data, "Suprimentos", numero_solicitacao, "Requisição interna lançada e disponível para tratamento.")
+                                    except Exception:
+                                        pass
+                                    break
+                            save_data(data)
+                            st.success(f"✅ Solicitação #{numero_solicitacao} atualizada e movida para 'Suprimentos'.")
+                            st.rerun()
+                        else:
+                            st.warning("Informe o número da requisição interna.")
+    
+    elif opcao == "📦 Catálogo de Produtos":
+        st.markdown('<div class="section-header">📦 Catálogo de Produtos</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box">🗂️ <strong>Gerencie os produtos disponíveis para seleção nas solicitações</strong></div>', unsafe_allow_html=True)
+
+        if perfil_atual not in ["Suprimentos", "Admin"]:
+            st.info("Esta página é restrita a Suprimentos ou Admin.")
+        else:
+            st.subheader("Lista de Produtos")
+            catalogo = data.get("configuracoes", {}).get("catalogo_produtos", [])
+            df_init = pd.DataFrame(catalogo) if catalogo else pd.DataFrame(columns=["codigo", "nome", "categoria", "unidade", "ativo"])
+            # Garante colunas e ordem
+            for col in ["codigo", "nome", "categoria", "unidade", "ativo"]:
+                if col not in df_init.columns:
+                    df_init[col] = True if col == "ativo" else ""
+            df_init = df_init[["codigo", "nome", "categoria", "unidade", "ativo"]]
+
+            try:
+                if hasattr(st, "column_config"):
+                    col_cfg = {
+                        "codigo": st.column_config.TextColumn("Código*", help="Código único do produto (ex.: PRD-001)"),
+                        "nome": st.column_config.TextColumn("Nome*", help="Nome do produto"),
+                        "categoria": st.column_config.TextColumn("Categoria", help="Categoria/área"),
+                        "unidade": st.column_config.SelectboxColumn("Unidade*", options=UNIDADES_PADRAO, help="Unidade padrão"),
+                        "ativo": st.column_config.CheckboxColumn("Ativo", default=True, help="Se desmarcado, não aparece para seleção")
+                    }
+                    df_edit = render_data_editor(
+                        df_init,
+                        key="catalogo_editor",
+                        use_container_width=True,
+                        num_rows="dynamic",
+                        column_config=col_cfg,
+                        hide_index=True
+                    )
+                else:
+                    df_edit = render_data_editor(
+                        df_init,
+                        key="catalogo_editor",
+                        use_container_width=True,
+                        num_rows="dynamic"
+                    )
+            except Exception:
+                df_edit = render_data_editor(
+                    df_init,
+                    key="catalogo_editor",
+                    use_container_width=True,
+                    num_rows="dynamic"
+                )
+
+            st.caption("Dica: adicione linhas para novos produtos. Linhas com código ou nome vazio serão ignoradas no salvamento.")
+
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                salvar = st.button("💾 Salvar Catálogo", use_container_width=True)
+            with c2:
+                resetar = st.button("↩️ Restaurar Catálogo Padrão", use_container_width=True)
+
+            if salvar:
+                registros = []
+                codigos = set()
+                erros = []
+                try:
+                    for r in df_edit.to_dict(orient="records"):
+                        cod = (r.get("codigo") or "").strip()
+                        nome = (r.get("nome") or "").strip()
+                        if not cod and not nome:
+                            continue
+                        if not cod or not nome:
+                            erros.append(f"Linha com código ou nome vazio: {r}")
+                            continue
+                        if cod in codigos:
+                            erros.append(f"Código duplicado: {cod}")
+                            continue
+                        codigos.add(cod)
+                        cat = (r.get("categoria") or "").strip()
+                        und = (r.get("unidade") or "").strip() or "UN"
+                        ativo = bool(r.get("ativo", True))
+                        registros.append({"codigo": cod, "nome": nome, "categoria": cat, "unidade": und, "ativo": ativo})
+                except Exception:
+                    erros.append("Falha ao processar os dados do catálogo.")
+
+                if erros:
+                    st.error("Não foi possível salvar devido a erros:")
+                    for e in erros:
+                        st.write(f"• {e}")
+                else:
+                    data["configuracoes"]["catalogo_produtos"] = registros
+                    save_data(data)
+                    st.success(f"✅ Catálogo salvo. {len(registros)} produto(s) ativo(s).")
+
+            if resetar:
+                data["configuracoes"]["catalogo_produtos"] = get_default_product_catalog()
+                save_data(data)
+                st.success("Catálogo restaurado para o padrão inicial.")
+                st.rerun()
+
     elif opcao == "📱 Aprovações":
         st.markdown('<div class="section-header">📱 Aprovações</div>', unsafe_allow_html=True)
         st.markdown('<div class="info-box">🛡️ <strong>Somente Gerência&Diretoria ou Admin podem aprovar</strong></div>', unsafe_allow_html=True)
