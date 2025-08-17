@@ -8,6 +8,7 @@ from typing import Dict, List
 import math
 import hashlib
 
+import io
 # Detecta ambiente cloud
 import os
 IS_CLOUD = os.path.exists('/mount/src') or 'STREAMLIT_CLOUD' in os.environ
@@ -396,13 +397,13 @@ def main():
         margin: 0;
         font-family: 'Poppins', sans-serif;
         font-weight: 600;
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     .subtitle-text {
         color: rgba(255, 255, 255, 0.9);
         margin: 0.5rem 0 0 0;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 400;
         opacity: 0.9;
     }
@@ -425,7 +426,7 @@ def main():
         margin: 2rem 0 1.5rem 0;
         text-align: center;
         font-weight: 600;
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         font-family: 'Poppins', sans-serif;
         box-shadow: 0 4px 16px rgba(229, 62, 62, 0.25);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -466,7 +467,7 @@ def main():
     .form-container {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
-        padding: 2rem;
+        padding: 1.5rem;
         border-radius: 16px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
@@ -494,7 +495,7 @@ def main():
     .stats-card {
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(8px);
-        padding: 1.5rem;
+        padding: 1.1rem;
         border-radius: 12px;
         border-left: 4px solid var(--ziran-red);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -507,7 +508,7 @@ def main():
         box-shadow: 0 8px 24px rgba(229, 62, 62, 0.12);
     }
     .metric-value {
-        font-size: 2.2rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: var(--ziran-red);
         margin: 0;
@@ -524,9 +525,9 @@ def main():
         color: var(--ziran-white) !important;
         border: none !important;
         border-radius: 12px !important;
-        padding: 0.75rem 2rem !important;
+        padding: 0.6rem 1.4rem !important;
         font-weight: 600 !important;
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 16px rgba(229, 62, 62, 0.3) !important;
     }
@@ -538,7 +539,7 @@ def main():
     .stSelectbox label, .stTextInput label, .stTextArea label, .stNumberInput label {
         font-weight: 500 !important;
         color: var(--ziran-gray) !important;
-        font-size: 0.95rem !important;
+        font-size: 0.9rem !important;
         margin-bottom: 0.5rem !important;
     }
     .stFileUploader {
@@ -1055,15 +1056,78 @@ def main():
             st.info("💡 Crie uma nova solicitação primeiro!")
             return
         
+        # 0) Pendências de Suprimentos (tabela com filtros e ordenação por urgência/SLA)
+        usar_pendencias = False
+        pendentes_opcoes = []
+        if perfil_atual in ["Suprimentos", "Admin"]:
+            st.subheader("0️⃣ Pendências de Suprimentos")
+            pend_supr = [s for s in data.get("solicitacoes", []) if s.get("status") == "Suprimentos"]
+            if pend_supr:
+                c1, c2, c3, c4 = st.columns([1,1,1,1])
+                with c1:
+                    dep_f = st.selectbox("Departamento", ["Todos"] + sorted(list({s.get("departamento") for s in pend_supr})))
+                with c2:
+                    prio_f = st.selectbox("Prioridade", ["Todas"] + PRIORIDADES)
+                with c3:
+                    so_atraso = st.checkbox("Somente em atraso", value=False)
+                with c4:
+                    usar_pendencias = st.checkbox("Usar lista na seleção abaixo", value=True)
+
+                rows = []
+                prio_rank_map = {"Urgente": 3, "Alta": 2, "Normal": 1, "Baixa": 0}
+                for s in pend_supr:
+                    try:
+                        data_cr = datetime.datetime.fromisoformat(s.get("carimbo_data_hora"))
+                    except Exception:
+                        continue
+                    dias_dec = calcular_dias_uteis(data_cr)
+                    sla = s.get("sla_dias", 0) or 0
+                    dias_rest = sla - dias_dec
+                    if dep_f != "Todos" and s.get("departamento") != dep_f:
+                        continue
+                    if prio_f != "Todas" and s.get("prioridade") != prio_f:
+                        continue
+                    if so_atraso and dias_rest >= 0:
+                        continue
+                    rows.append({
+                        "Número": s.get("numero_solicitacao_estoque"),
+                        "Solicitante": s.get("solicitante"),
+                        "Departamento": s.get("departamento"),
+                        "Prioridade": s.get("prioridade"),
+                        "SLA (dias)": sla,
+                        "Dias Decorridos": dias_dec,
+                        "Dias Restantes": dias_rest,
+                        "Responsável": s.get("responsavel_suprimentos") or "-",
+                        "Data/Hora": data_cr.strftime('%d/%m/%Y %H:%M'),
+                        "_rank": (dias_rest, -prio_rank_map.get(s.get("prioridade"), 1))
+                    })
+
+                if rows:
+                    # ordena: menor dias restantes primeiro (atrasados primeiro), depois prioridade mais alta
+                    rows_sorted = sorted(rows, key=lambda r: (r["Dias Restantes"], r["_rank"][1]))
+                    df_pend = pd.DataFrame([{k: v for k, v in r.items() if k != "_rank"} for r in rows_sorted])
+                    st.dataframe(df_pend, use_container_width=True)
+
+                    pendentes_opcoes = [
+                        f"#{r['Número']} - {r['Solicitante']} - Suprimentos ({r['Data/Hora']})" for r in rows_sorted
+                    ]
+                else:
+                    st.info("Nenhuma pendência encontrada com os filtros aplicados.")
+            else:
+                st.success("✅ Não há solicitações na etapa de Suprimentos.")
+
         # Seleção da solicitação
         st.subheader("1️⃣ Selecione a Solicitação")
         
         opcoes_solicitacoes = []
-        for s in solicitacoes_ativas:
-            data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
-            opcoes_solicitacoes.append(
-                f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['status']} ({data_criacao})"
-            )
+        if usar_pendencias and pendentes_opcoes:
+            opcoes_solicitacoes = pendentes_opcoes
+        else:
+            for s in solicitacoes_ativas:
+                data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                opcoes_solicitacoes.append(
+                    f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['status']} ({data_criacao})"
+                )
         
         solicitacao_selecionada = st.selectbox("Escolha a solicitação:", opcoes_solicitacoes)
         
@@ -1471,6 +1535,25 @@ def main():
                     st.markdown("**Descrição**")
                     st.write(sol.get('descricao', ''))
 
+                    # Campos adicionais solicitados: responsável, qtde de cotações, fornecedor/valor e local de aplicação
+                    resp_sup = sol.get('responsavel_suprimentos') or 'N/A'
+                    qt_cot = len(sol.get('cotacoes', []) or [])
+                    fornecedor_exib = sol.get('fornecedor_final') or sol.get('fornecedor_recomendado') or 'N/A'
+                    valor_exib = sol.get('valor_final') if sol.get('valor_final') is not None else sol.get('valor_estimado')
+                    valor_exib_str = f"R$ {valor_exib:,.2f}" if isinstance(valor_exib, (int, float, float)) else 'N/A'
+
+                    cx1, cx2, cx3, cx4 = st.columns(4)
+                    with cx1:
+                        st.metric("Resp. Suprimentos", resp_sup)
+                    with cx2:
+                        st.metric("Qtde de Cotações", qt_cot)
+                    with cx3:
+                        st.metric("Fornecedor", fornecedor_exib)
+                    with cx4:
+                        st.metric("Valor (R$)", valor_exib_str)
+
+                    st.markdown(f"**Local de Aplicação:** {sol.get('local_aplicacao') or 'N/A'}")
+
                     comentarios = st.text_area("Comentários (opcional)", key=f"aprov_coment_{numero_solicitacao}")
                     a1, a2 = st.columns(2)
                     with a1:
@@ -1811,7 +1894,21 @@ def main():
             df_historico = pd.DataFrame(historico_df)
             st.dataframe(df_historico, use_container_width=True)
             
-            # Botão para download
+            # Botões para download
+            try:
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df_historico.to_excel(writer, index=False, sheet_name='Historico')
+                xlsx_data = output.getvalue()
+                st.download_button(
+                    label="📥 Download Excel (.xlsx)",
+                    data=xlsx_data,
+                    file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            except Exception:
+                st.caption("Não foi possível gerar Excel (.xlsx). Verifique a dependência 'openpyxl'.")
+
             csv = df_historico.to_csv(index=False, encoding='utf-8-sig')
             st.download_button(
                 label="📥 Download CSV",
