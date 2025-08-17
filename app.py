@@ -352,6 +352,17 @@ def obter_sla_por_prioridade(prioridade: str, departamento: str = None) -> int:
     # Por enquanto usa SLA padrão, mas pode ser customizado por departamento
     return SLA_PADRAO.get(prioridade, 3)
 
+def format_brl(valor) -> str:
+    """Formata número para moeda BRL (pt-BR) ex.: R$ 1.234,56"""
+    if valor is None:
+        return "N/A"
+    try:
+        s = f"{float(valor):,.2f}"
+        s = s.replace(",", "_").replace(".", ",").replace("_", ".")
+        return f"R$ {s}"
+    except Exception:
+        return "N/A"
+
 def main():
     # CSS personalizado com cores da marca Ziran
     st.markdown("""
@@ -1540,7 +1551,7 @@ def main():
                     qt_cot = len(sol.get('cotacoes', []) or [])
                     fornecedor_exib = sol.get('fornecedor_final') or sol.get('fornecedor_recomendado') or 'N/A'
                     valor_exib = sol.get('valor_final') if sol.get('valor_final') is not None else sol.get('valor_estimado')
-                    valor_exib_str = f"R$ {valor_exib:,.2f}" if isinstance(valor_exib, (int, float, float)) else 'N/A'
+                    valor_exib_str = format_brl(valor_exib)
 
                     cx1, cx2, cx3, cx4 = st.columns(4)
                     with cx1:
