@@ -128,6 +128,8 @@ def init_empty_data() -> Dict:
             "limite_gerencia": 5000.0,
             "limite_diretoria": 15000.0,
             "upload_dir": UPLOAD_ROOT_DEFAULT,
+            "suprimentos_min_cotacoes": 1,
+            "suprimentos_anexo_obrigatorio": True,
             "catalogo_produtos": get_default_product_catalog()
         },
         "notificacoes": [],
@@ -183,6 +185,8 @@ def migrate_data(data: Dict) -> Dict:
     cfg.setdefault("limite_gerencia", 5000.0)
     cfg.setdefault("limite_diretoria", 15000.0)
     cfg.setdefault("upload_dir", UPLOAD_ROOT_DEFAULT)
+    cfg.setdefault("suprimentos_min_cotacoes", 1)
+    cfg.setdefault("suprimentos_anexo_obrigatorio", True)
     cfg.setdefault("catalogo_produtos", get_default_product_catalog())
     data.setdefault("movimentacoes", [])
     data.setdefault("notificacoes", [])
@@ -1214,8 +1218,14 @@ def main():
                             observacoes = st.text_area("Observações", height=100)
                     
                     elif proxima_etapa == "Aguardando Aprovação":
-                        st.markdown("**🧾 Registrar Cotações (mín. 1, ideal 3)**")
-                        st.info("Cadastre as cotações recebidas para seguir para aprovação. Anexe os documentos se possível.")
+                        cfg_rules = data.get("configuracoes", {})
+                        min_cot_cfg = int(cfg_rules.get("suprimentos_min_cotacoes", 1))
+                        anexo_obrig_cfg = bool(cfg_rules.get("suprimentos_anexo_obrigatorio", True))
+                        st.markdown(f"**🧾 Registrar Cotações (mín. {min_cot_cfg}, ideal 3)**")
+                        if anexo_obrig_cfg:
+                            st.info("Cadastre as cotações recebidas para seguir para aprovação. Anexos são obrigatórios em pelo menos 1 cotação.")
+                        else:
+                            st.info("Cadastre as cotações recebidas para seguir para aprovação. Anexos são opcionais.")
                         cotacoes_input = []
                         for idx in range(1, 4):
                             with st.expander(f"Cotação {idx}", expanded=(idx == 1)):
@@ -1252,6 +1262,29 @@ def main():
                         if proxima_etapa == "Em Cotação" and not ("resp_supr" in locals() and resp_supr):
                             st.warning("Informe o 'Responsável Suprimentos*' para a etapa de cotação.")
                             st.stop()
+                        
+                        # Validação: usar regras configuráveis (mínimo de cotações e anexos)
+                        if proxima_etapa == "Aguardando Aprovação":
+                            cfg_rules = data.get("configuracoes", {})
+                            min_cot_cfg = int(cfg_rules.get("suprimentos_min_cotacoes", 1))
+                            anexo_obrig_cfg = bool(cfg_rules.get("suprimentos_anexo_obrigatorio", True))
+                            valid_quotes = 0
+                            valid_quotes_with_attachment = 0
+                            try:
+                                for idx, (fornecedor, valor, prazo, validade, anexos, obs_c) in enumerate(cotacoes_input, start=1):
+                                    if fornecedor and valor and float(valor) > 0:
+                                        valid_quotes += 1
+                                        if anexos and len(anexos) > 0:
+                                            valid_quotes_with_attachment += 1
+                            except Exception:
+                                valid_quotes = 0
+                                valid_quotes_with_attachment = 0
+                            if valid_quotes < min_cot_cfg:
+                                st.warning(f"Informe no mínimo {min_cot_cfg} cotação(ões) válidas (Fornecedor e Valor) para seguir para aprovação.")
+                                st.stop()
+                            if anexo_obrig_cfg and valid_quotes_with_attachment < 1:
+                                st.warning("É obrigatório anexar pelo menos 1 documento em uma das cotações.")
+                                st.stop()
                         
                         # Atualiza a solicitação
                         for i, s in enumerate(data["solicitacoes"]):
@@ -1949,6 +1982,46 @@ def main():
         
         st.info("💡 Os SLAs são aplicados automaticamente baseados na prioridade da solicitação.")
         st.info("📊 Use o Dashboard SLA para monitorar a performance e ajustar os SLAs conforme necessário.")
+
+        st.markdown("---")
+        st.subheader("🧾 Regras de Suprimentos (Cotações e Anexos)")
+        st.caption("Defina a quantidade mínima de cotações para avançar à aprovação e se é obrigatório anexar documentos em ao menos 1 cotação.")
+
+        cfg_rules = data.get("configuracoes", {})
+        min_cot_atual = int(cfg_rules.get("suprimentos_min_cotacoes", 1))
+        anexo_obrig_atual = bool(cfg_rules.get("suprimentos_anexo_obrigatorio", True))
+
+        with st.form("regras_suprimentos_form"):
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                min_cot_novo = st.number_input(
+                    "Mínimo de Cotações*",
+                    min_value=1,
+                    max_value=3,
+                    step=1,
+                    value=min_cot_atual,
+                    help="Quantidade mínima de cotações válidas (Fornecedor e Valor) exigidas para seguir para aprovação."
+                )
+            with c2:
+                anexo_obrig_novo = st.checkbox(
+                    "Anexo obrigatório em ao menos 1 cotação",
+                    value=anexo_obrig_atual,
+                    help="Quando marcado, exige pelo menos 1 anexo em uma das cotações para avançar."
+                )
+            salvar_regras = st.form_submit_button("💾 Salvar Regras", use_container_width=True)
+
+        if salvar_regras:
+            try:
+                # Garante limites coerentes com o formulário
+                min_cot_val = int(min_cot_novo)
+                min_cot_val = max(1, min(3, min_cot_val))
+                data["configuracoes"]["suprimentos_min_cotacoes"] = min_cot_val
+                data["configuracoes"]["suprimentos_anexo_obrigatorio"] = bool(anexo_obrig_novo)
+                save_data(data)
+                st.success("✅ Regras de Suprimentos salvas com sucesso.")
+                st.rerun()
+            except Exception:
+                st.error("Não foi possível salvar as regras. Tente novamente.")
     
     elif opcao == "👥 Gerenciar Usuários":
         if perfil_atual != "Admin":
