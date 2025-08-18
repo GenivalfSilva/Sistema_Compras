@@ -10,6 +10,8 @@ class DatabaseManager:
     
     def __init__(self, use_cloud_db=False):
         self.use_cloud_db = use_cloud_db
+        # Tipo do banco atual: 'sqlite' ou 'postgres'
+        self.db_type = 'sqlite'
         self.db_available = False
         self.conn = None
         
@@ -26,6 +28,7 @@ class DatabaseManager:
         try:
             self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self.conn.row_factory = sqlite3.Row
+            self.db_type = 'sqlite'
             self.create_tables()
             self.db_available = True
         except Exception as e:
@@ -37,19 +40,34 @@ class DatabaseManager:
         """Configura banco para Streamlit Cloud"""
         try:
             # Tenta PostgreSQL primeiro se configurado
-            if hasattr(st, 'secrets') and 'postgres' in st.secrets:
-                import psycopg2
-                from psycopg2.extras import RealDictCursor
-                
-                self.conn = psycopg2.connect(
-                    host=st.secrets["postgres"]["host"],
-                    database=st.secrets["postgres"]["database"],
-                    user=st.secrets["postgres"]["user"],
-                    password=st.secrets["postgres"]["password"],
-                    port=st.secrets["postgres"]["port"],
-                    cursor_factory=RealDictCursor
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+
+            conn = None
+            if hasattr(st, 'secrets') and ('postgres' in st.secrets or 'database' in st.secrets):
+                pg = st.secrets.get("postgres") or st.secrets.get("database")
+                # sslmode opcional; default para 'require' quando usando provedores gerenciados (Neon)
+                sslmode = pg.get("sslmode", "require")
+                conn = psycopg2.connect(
+                    host=pg["host"],
+                    database=pg.get("database") or pg.get("name"),
+                    user=pg["user"],
+                    password=pg["password"],
+                    port=int(pg.get("port", 5432)),
+                    sslmode=sslmode,
+                    cursor_factory=RealDictCursor,
                 )
-                self.create_tables()
+            elif hasattr(st, 'secrets') and 'postgres_url' in st.secrets:
+                conn = psycopg2.connect(st.secrets['postgres_url'], cursor_factory=RealDictCursor)
+            elif hasattr(st, 'secrets') and 'database_url' in st.secrets:
+                conn = psycopg2.connect(st.secrets['database_url'], cursor_factory=RealDictCursor)
+            elif os.getenv('DATABASE_URL'):
+                conn = psycopg2.connect(os.getenv('DATABASE_URL'), cursor_factory=RealDictCursor)
+
+            if conn is not None:
+                self.conn = conn
+                self.db_type = 'postgres'
+                self.create_tables_postgres()
                 self.db_available = True
                 return
         except Exception as e:
@@ -59,6 +77,13 @@ class DatabaseManager:
         print("Cloud environment detected - database disabled")
         self.db_available = False
         self.conn = None
+
+    def _sql(self, sql: str) -> str:
+        """Ajusta placeholders para o driver atual."""
+        if self.db_type == 'postgres':
+            # Converte placeholders estilo SQLite (?) para psycopg2 (%s)
+            return sql.replace('?', '%s')
+        return sql
     
     def create_tables(self):
         """Cria tabelas SQLite"""
@@ -142,7 +167,7 @@ class DatabaseManager:
         """Cria tabelas PostgreSQL para Streamlit Cloud"""
         cursor = self.conn.cursor()
         
-        # Similar ao SQLite mas com sintaxe PostgreSQL
+        # Tabela de usuários
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
             id SERIAL PRIMARY KEY,
@@ -154,8 +179,66 @@ class DatabaseManager:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
-        
-        # Outras tabelas...
+
+        # Tabela de solicitações
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS solicitacoes (
+            id SERIAL PRIMARY KEY,
+            numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
+            solicitante TEXT NOT NULL,
+            departamento TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            prioridade TEXT NOT NULL,
+            aplicacao INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            etapa_atual TEXT NOT NULL,
+            data_criacao TIMESTAMP NOT NULL,
+            valor_estimado DOUBLE PRECISION,
+            valor_final DOUBLE PRECISION,
+            fornecedor_recomendado TEXT,
+            fornecedor_final TEXT,
+            sla_cumprido TEXT,
+            anexos TEXT,
+            cotacoes TEXT,
+            aprovacoes TEXT,
+            historico_etapas TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # Tabela de configurações
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS configuracoes (
+            id SERIAL PRIMARY KEY,
+            chave TEXT UNIQUE NOT NULL,
+            valor TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # Tabela de notificações
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notificacoes (
+            id SERIAL PRIMARY KEY,
+            perfil TEXT NOT NULL,
+            numero INTEGER NOT NULL,
+            mensagem TEXT NOT NULL,
+            data TIMESTAMP NOT NULL,
+            lida BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # Tabela de sessões (para persistência de login)
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sessoes (
+            id TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
         self.conn.commit()
     
     def migrate_from_json(self, json_file_path: str):
@@ -206,10 +289,11 @@ class DatabaseManager:
             senha_hash = hashlib.sha256((SALT + senha_hash).encode("utf-8")).hexdigest()
         
         try:
-            cursor.execute('''
+            sql = '''
             INSERT INTO usuarios (username, nome, perfil, departamento, senha_hash)
             VALUES (?, ?, ?, ?, ?)
-            ''', (username, nome, perfil, departamento, senha_hash))
+            '''
+            cursor.execute(self._sql(sql), (username, nome, perfil, departamento, senha_hash))
             self.conn.commit()
             return True
         except sqlite3.IntegrityError:
@@ -228,11 +312,12 @@ class DatabaseManager:
             senha_hash = hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
             
             cursor = self.conn.cursor()
-            cursor.execute('''
+            sql = '''
             SELECT username, nome, perfil, departamento
             FROM usuarios 
             WHERE username = ? AND senha_hash = ?
-            ''', (username, senha_hash))
+            '''
+            cursor.execute(self._sql(sql), (username, senha_hash))
             
             row = cursor.fetchone()
             if row:
@@ -244,11 +329,12 @@ class DatabaseManager:
     def authenticate_user_by_username(self, username: str) -> Dict:
         """Busca usuário apenas pelo username (para sessões)"""
         cursor = self.conn.cursor()
-        cursor.execute('''
+        sql = '''
         SELECT username, nome, perfil, departamento
         FROM usuarios 
         WHERE username = ?
-        ''', (username,))
+        '''
+        cursor.execute(self._sql(sql), (username,))
         
         row = cursor.fetchone()
         if row:
@@ -261,6 +347,24 @@ class DatabaseManager:
         cursor.execute('SELECT username, nome, perfil, departamento FROM usuarios')
         return [dict(row) for row in cursor.fetchall()]
     
+    def update_user_password(self, username: str, new_password: str) -> bool:
+        """Atualiza a senha de um usuário existente."""
+        if not self.db_available or not self.conn:
+            return False
+        try:
+            import hashlib
+            SALT = "ziran_local_salt_v1"
+            senha_hash = hashlib.sha256((SALT + new_password).encode("utf-8")).hexdigest()
+            cursor = self.conn.cursor()
+            sql = '''
+            UPDATE usuarios SET senha_hash = ? WHERE username = ?
+            '''
+            cursor.execute(self._sql(sql), (senha_hash, username))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            return False
+    
     def create_session(self, username: str, session_id: str, expires_hours=24):
         """Cria sessão persistente"""
         if not self.db_available or not self.conn:
@@ -270,10 +374,17 @@ class DatabaseManager:
             cursor = self.conn.cursor()
             expires_at = datetime.datetime.now() + datetime.timedelta(hours=expires_hours)
             
-            cursor.execute('''
-            INSERT OR REPLACE INTO sessoes (id, username, expires_at)
-            VALUES (?, ?, ?)
-            ''', (session_id, username, expires_at))
+            if self.db_type == 'postgres':
+                cursor.execute('''
+                INSERT INTO sessoes (id, username, expires_at)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, expires_at = EXCLUDED.expires_at
+                ''', (session_id, username, expires_at))
+            else:
+                cursor.execute('''
+                INSERT OR REPLACE INTO sessoes (id, username, expires_at)
+                VALUES (?, ?, ?)
+                ''', (session_id, username, expires_at))
             self.conn.commit()
             return True
         except Exception:
@@ -282,10 +393,11 @@ class DatabaseManager:
     def validate_session(self, session_id: str) -> str:
         """Valida sessão e retorna username"""
         cursor = self.conn.cursor()
-        cursor.execute('''
+        sql = '''
         SELECT username FROM sessoes 
         WHERE id = ? AND expires_at > CURRENT_TIMESTAMP
-        ''', (session_id,))
+        '''
+        cursor.execute(self._sql(sql), (session_id,))
         
         row = cursor.fetchone()
         return row['username'] if row else None
@@ -293,22 +405,31 @@ class DatabaseManager:
     def delete_session(self, session_id: str):
         """Remove sessão"""
         cursor = self.conn.cursor()
-        cursor.execute('DELETE FROM sessoes WHERE id = ?', (session_id,))
+        sql = 'DELETE FROM sessoes WHERE id = ?'
+        cursor.execute(self._sql(sql), (session_id,))
         self.conn.commit()
     
     def set_config(self, key: str, value: str):
         """Define configuração"""
         cursor = self.conn.cursor()
-        cursor.execute('''
-        INSERT OR REPLACE INTO configuracoes (chave, valor, updated_at)
-        VALUES (?, ?, CURRENT_TIMESTAMP)
-        ''', (key, value))
+        if self.db_type == 'postgres':
+            cursor.execute('''
+            INSERT INTO configuracoes (chave, valor, updated_at)
+            VALUES (%s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = CURRENT_TIMESTAMP
+            ''', (key, value))
+        else:
+            cursor.execute('''
+            INSERT OR REPLACE INTO configuracoes (chave, valor, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ''', (key, value))
         self.conn.commit()
     
     def get_config(self, key: str, default=None):
         """Obtém configuração"""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT valor FROM configuracoes WHERE chave = ?', (key,))
+        sql = 'SELECT valor FROM configuracoes WHERE chave = ?'
+        cursor.execute(self._sql(sql), (key,))
         row = cursor.fetchone()
         return row['valor'] if row else default
     
@@ -327,7 +448,22 @@ def get_database(use_cloud_db=None):
     if _db_instance is None:
         # Detectar se está no Streamlit Cloud
         if use_cloud_db is None:
-            use_cloud_db = os.getenv('STREAMLIT_SHARING_MODE') == 'true' or 'streamlit.app' in os.getenv('HOSTNAME', '')
+            # Preferir explicitamente quando houver credenciais
+            try:
+                if hasattr(st, 'secrets') and 'postgres' in st.secrets:
+                    use_cloud_db = True
+                elif hasattr(st, 'secrets') and 'database' in st.secrets:
+                    use_cloud_db = True
+                elif hasattr(st, 'secrets') and 'postgres_url' in st.secrets:
+                    use_cloud_db = True
+                elif hasattr(st, 'secrets') and 'database_url' in st.secrets:
+                    use_cloud_db = True
+                elif os.getenv('DATABASE_URL'):
+                    use_cloud_db = True
+                else:
+                    use_cloud_db = os.getenv('STREAMLIT_SHARING_MODE') == 'true' or 'streamlit.app' in os.getenv('HOSTNAME', '')
+            except Exception:
+                use_cloud_db = False
         
         _db_instance = DatabaseManager(use_cloud_db)
     

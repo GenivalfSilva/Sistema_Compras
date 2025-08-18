@@ -10,22 +10,33 @@ import hashlib
 
 import io
 # Detecta ambiente cloud
-import os
 IS_CLOUD = os.path.exists('/mount/src') or 'STREAMLIT_CLOUD' in os.environ
 
-# Sistema simples para cloud
-if IS_CLOUD:
-    from simple_session import simple_login, ensure_session_persistence, simple_logout
-    USE_DATABASE = False
-else:
-    # Tenta usar banco apenas local
+# Decide uso de banco: utilizar DB no cloud se houver credenciais
+def _has_cloud_db_credentials() -> bool:
     try:
+        has_secrets = hasattr(st, 'secrets') and (
+            ("postgres" in st.secrets) or
+            ("database" in st.secrets) or
+            ("postgres_url" in st.secrets) or
+            ("database_url" in st.secrets)
+        )
+        return has_secrets or bool(os.getenv("DATABASE_URL"))
+    except Exception:
+        return False
+
+USE_DATABASE = False
+try:
+    if (IS_CLOUD and _has_cloud_db_credentials()) or (not IS_CLOUD):
         from database import get_database
         from session_manager import get_session_manager
         USE_DATABASE = True
-    except ImportError:
-        from simple_session import simple_login, ensure_session_persistence, simple_logout
-        USE_DATABASE = False
+except Exception:
+    USE_DATABASE = False
+
+if not USE_DATABASE:
+    # Fallback para autenticação simples em memória
+    from simple_session import simple_login, ensure_session_persistence, simple_logout
 
 # Configuração da página
 st.set_page_config(
@@ -312,11 +323,37 @@ def add_user(data: Dict, username: str, nome: str, perfil: str, departamento: st
         return ""
 
 def reset_user_password(data: Dict, username: str, nova_senha: str) -> str:
+    if USE_DATABASE:
+        db = get_database()
+        ok = db.update_user_password(username, nova_senha)
+        return "" if ok else "Usuário não encontrado."
     user = find_user(data, username)
     if not user:
         return "Usuário não encontrado."
     user["senha_hash"] = hash_password(nova_senha)
     return ""
+
+def migrate_users_to_db_from_json(data: Dict):
+    """Migra usuários existentes no JSON para o banco (uma vez)."""
+    try:
+        db = get_database()
+        if not getattr(db, "db_available", False):
+            return
+        existentes = {u.get("username") for u in db.get_all_users()}
+        for u in data.get("usuarios", []):
+            username = u.get("username")
+            if username and username not in existentes:
+                db.add_user(
+                    username,
+                    u.get("nome", username),
+                    u.get("perfil", "Solicitante"),
+                    u.get("departamento", "Outro"),
+                    u.get("senha_hash", ""),
+                    is_hashed=True
+                )
+    except Exception:
+        # Falha silenciosa para não bloquear o app
+        pass
 
 def calcular_dias_uteis(data_inicio: datetime.datetime, data_fim: datetime.datetime = None) -> int:
     """Calcula dias úteis entre duas datas (excluindo fins de semana)"""
@@ -637,6 +674,8 @@ def main():
         admin_exists = db.authenticate_user("admin", "admin123")
         if not admin_exists:
             db.add_user("admin", "Administrador", "Admin", "TI", "admin123")
+        # Migra usuários do JSON para o banco (se houver)
+        migrate_users_to_db_from_json(data)
     else:
         changed = ensure_admin_user(data)
         if changed:
@@ -2053,9 +2092,17 @@ def main():
         
         st.markdown("---")
         st.subheader("Usuários Atuais")
+        if USE_DATABASE:
+            try:
+                db = get_database()
+                usuarios_list = db.get_all_users()
+            except Exception:
+                usuarios_list = []
+        else:
+            usuarios_list = data.get("usuarios", [])
         usuarios_df = pd.DataFrame([
             {"Usuário": u.get("username"), "Nome": u.get("nome"), "Perfil": u.get("perfil"), "Departamento": u.get("departamento")}
-            for u in data.get("usuarios", [])
+            for u in usuarios_list
         ])
         if not usuarios_df.empty:
             st.dataframe(usuarios_df, use_container_width=True)
@@ -2065,7 +2112,8 @@ def main():
         st.markdown("---")
         st.subheader("Redefinir Senha")
         with st.form("reset_senha_form"):
-            r_user = st.selectbox("Usuário", [u.get("username") for u in data.get("usuarios", [])])
+            lista_usernames = [u.get("username") for u in usuarios_list]
+            r_user = st.selectbox("Usuário", lista_usernames)
             r_senha = st.text_input("Nova senha", type="password")
             r_senha2 = st.text_input("Confirmar nova senha", type="password")
             bt_reset = st.form_submit_button("🔒 Redefinir")
@@ -2077,7 +2125,8 @@ def main():
                 if erro:
                     st.error(erro)
                 else:
-                    save_data(data)
+                    if not USE_DATABASE:
+                        save_data(data)
                     st.success(f"Senha de '{r_user}' redefinida com sucesso.")
     
     else:
