@@ -688,8 +688,9 @@ class DatabaseManager:
                 cotacoes,
                 aprovacoes,
                 historico_etapas,
-                itens
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                itens,
+                data_criacao
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
             
             # Garante valores para colunas NOT NULL e serializa JSON
@@ -722,7 +723,8 @@ class DatabaseManager:
                 json.dumps(solicitacao_data.get('cotacoes', [])),
                 json.dumps(solicitacao_data.get('aprovacoes', [])),
                 json.dumps(solicitacao_data.get('historico_etapas', [])),
-                json.dumps(solicitacao_data.get('itens', []))
+                json.dumps(solicitacao_data.get('itens', [])),
+                datetime.datetime.now()  # data_criacao
             )
             
             print(f"Executando SQL com {len(values)} valores")
