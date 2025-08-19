@@ -354,10 +354,26 @@ class DatabaseManager:
         """Garante que a tabela 'solicitacoes' possua todas as colunas usadas pelo app."""
         if not self.conn or self.db_type != 'sqlite':
             return
+            
+        # Verifica se existe a coluna problemática 'aplicacao'
+        cursor = self.conn.cursor()
+        cursor.execute("PRAGMA table_info(solicitacoes)")
+        columns = cursor.fetchall()
+        column_names = [col[1] for col in columns]
+        
+        # Se existe 'aplicacao' mas não 'local_aplicacao', precisa recriar a tabela
+        if 'aplicacao' in column_names and 'local_aplicacao' not in column_names:
+            print("Recriando tabela solicitacoes com schema correto...")
+            self._recreate_solicitacoes_table()
+            return
+            
         required_cols = [
             # Campos adicionados em versões recentes; todos opcionais (sem NOT NULL)
             "numero_pedido_compras INTEGER",
             "etapa_atual TEXT",
+            "local_aplicacao TEXT",
+            "carimbo_data_hora TEXT",
+            "sla_dias INTEGER",
             "data_numero_pedido TEXT",
             "data_cotacao TEXT",
             "data_entrega TEXT",
@@ -379,6 +395,57 @@ class DatabaseManager:
         ]
         for coldef in required_cols:
             self._ensure_sqlite_column("solicitacoes", coldef)
+    
+    def _recreate_solicitacoes_table(self):
+        """Recria a tabela solicitacoes com o schema correto"""
+        cursor = self.conn.cursor()
+        
+        # Backup dos dados existentes
+        cursor.execute("SELECT * FROM solicitacoes")
+        existing_data = cursor.fetchall()
+        
+        # Remove tabela antiga
+        cursor.execute("DROP TABLE IF EXISTS solicitacoes")
+        
+        # Cria tabela com schema correto
+        cursor.execute('''
+        CREATE TABLE solicitacoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
+            numero_pedido_compras INTEGER,
+            solicitante TEXT NOT NULL,
+            departamento TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            prioridade TEXT NOT NULL,
+            local_aplicacao TEXT,
+            status TEXT NOT NULL,
+            etapa_atual TEXT,
+            carimbo_data_hora TEXT,
+            data_numero_pedido TEXT,
+            data_cotacao TEXT,
+            data_entrega TEXT,
+            sla_dias INTEGER,
+            dias_atendimento INTEGER,
+            sla_cumprido TEXT,
+            observacoes TEXT,
+            numero_requisicao_interno TEXT,
+            data_requisicao_interna TEXT,
+            responsavel_suprimentos TEXT,
+            valor_estimado REAL,
+            valor_final REAL,
+            fornecedor_recomendado TEXT,
+            fornecedor_final TEXT,
+            anexos_requisicao TEXT,
+            cotacoes TEXT,
+            aprovacoes TEXT,
+            historico_etapas TEXT,
+            itens TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        self.conn.commit()
+        print("Tabela solicitacoes recriada com schema correto")
     
     def migrate_from_json(self, json_file_path: str):
         """Migra dados do JSON para o banco de dados"""
