@@ -107,23 +107,34 @@ class DatabaseManager:
         CREATE TABLE IF NOT EXISTS solicitacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
+            numero_pedido_compras INTEGER,
             solicitante TEXT NOT NULL,
             departamento TEXT NOT NULL,
             descricao TEXT NOT NULL,
             prioridade TEXT NOT NULL,
-            aplicacao INTEGER NOT NULL,
+            local_aplicacao TEXT NOT NULL,
             status TEXT NOT NULL,
             etapa_atual TEXT NOT NULL,
-            data_criacao TIMESTAMP NOT NULL,
+            carimbo_data_hora TEXT NOT NULL,
+            data_numero_pedido TEXT,
+            data_cotacao TEXT,
+            data_entrega TEXT,
+            sla_dias INTEGER NOT NULL,
+            dias_atendimento INTEGER,
+            sla_cumprido TEXT,
+            observacoes TEXT,
+            numero_requisicao_interno TEXT,
+            data_requisicao_interna TEXT,
+            responsavel_suprimentos TEXT,
             valor_estimado REAL,
             valor_final REAL,
             fornecedor_recomendado TEXT,
             fornecedor_final TEXT,
-            sla_cumprido TEXT,
-            anexos TEXT,  -- JSON string
+            anexos_requisicao TEXT,  -- JSON string
             cotacoes TEXT,  -- JSON string
             aprovacoes TEXT,  -- JSON string
             historico_etapas TEXT,  -- JSON string
+            itens TEXT,  -- JSON string
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
@@ -135,6 +146,32 @@ class DatabaseManager:
             chave TEXT UNIQUE NOT NULL,
             valor TEXT NOT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Tabela de produtos do catálogo
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS catalogo_produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT UNIQUE NOT NULL,
+            nome TEXT NOT NULL,
+            categoria TEXT,
+            unidade TEXT NOT NULL,
+            ativo BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Tabela de movimentações (histórico de mudanças)
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS movimentacoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_solicitacao INTEGER NOT NULL,
+            etapa_origem TEXT NOT NULL,
+            etapa_destino TEXT NOT NULL,
+            usuario TEXT NOT NULL,
+            data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            observacoes TEXT
         )
         ''')
         
@@ -162,6 +199,11 @@ class DatabaseManager:
         ''')
         
         self.conn.commit()
+        # Após criar tabelas, garante que bases antigas tenham colunas novas
+        try:
+            self._migrate_sqlite_schema()
+        except Exception as e:
+            print(f"SQLite schema migration warning: {e}")
     
     def create_tables_postgres(self):
         """Cria tabelas PostgreSQL para Streamlit Cloud"""
@@ -185,23 +227,34 @@ class DatabaseManager:
         CREATE TABLE IF NOT EXISTS solicitacoes (
             id SERIAL PRIMARY KEY,
             numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
+            numero_pedido_compras INTEGER,
             solicitante TEXT NOT NULL,
             departamento TEXT NOT NULL,
             descricao TEXT NOT NULL,
             prioridade TEXT NOT NULL,
-            aplicacao INTEGER NOT NULL,
+            local_aplicacao TEXT NOT NULL,
             status TEXT NOT NULL,
             etapa_atual TEXT NOT NULL,
-            data_criacao TIMESTAMP NOT NULL,
+            carimbo_data_hora TEXT NOT NULL,
+            data_numero_pedido TEXT,
+            data_cotacao TEXT,
+            data_entrega TEXT,
+            sla_dias INTEGER NOT NULL,
+            dias_atendimento INTEGER,
+            sla_cumprido TEXT,
+            observacoes TEXT,
+            numero_requisicao_interno TEXT,
+            data_requisicao_interna TEXT,
+            responsavel_suprimentos TEXT,
             valor_estimado DOUBLE PRECISION,
             valor_final DOUBLE PRECISION,
             fornecedor_recomendado TEXT,
             fornecedor_final TEXT,
-            sla_cumprido TEXT,
-            anexos TEXT,
-            cotacoes TEXT,
-            aprovacoes TEXT,
-            historico_etapas TEXT,
+            anexos_requisicao TEXT,  -- JSON string
+            cotacoes TEXT,  -- JSON string
+            aprovacoes TEXT,  -- JSON string
+            historico_etapas TEXT,  -- JSON string
+            itens TEXT,  -- JSON string
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
@@ -213,6 +266,32 @@ class DatabaseManager:
             chave TEXT UNIQUE NOT NULL,
             valor TEXT NOT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Tabela de produtos do catálogo
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS catalogo_produtos (
+            id SERIAL PRIMARY KEY,
+            codigo TEXT UNIQUE NOT NULL,
+            nome TEXT NOT NULL,
+            categoria TEXT,
+            unidade TEXT NOT NULL,
+            ativo BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Tabela de movimentações (histórico de mudanças)
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS movimentacoes (
+            id SERIAL PRIMARY KEY,
+            numero_solicitacao INTEGER NOT NULL,
+            etapa_origem TEXT NOT NULL,
+            etapa_destino TEXT NOT NULL,
+            usuario TEXT NOT NULL,
+            data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            observacoes TEXT
         )
         ''')
 
@@ -240,6 +319,66 @@ class DatabaseManager:
         ''')
 
         self.conn.commit()
+    
+    def _get_sqlite_columns(self, table: str) -> set:
+        """Retorna conjunto de nomes de colunas existentes para uma tabela SQLite."""
+        if not self.conn or self.db_type != 'sqlite':
+            return set()
+        cols = set()
+        try:
+            cur = self.conn.cursor()
+            cur.execute(f"PRAGMA table_info({table})")
+            for row in cur.fetchall():
+                # row format: cid, name, type, notnull, dflt_value, pk
+                cols.add(row[1] if not isinstance(row, sqlite3.Row) else row["name"])
+        except Exception:
+            pass
+        return cols
+
+    def _ensure_sqlite_column(self, table: str, coldef: str):
+        """Adiciona coluna se não existir. coldef deve conter 'nome TIPO'."""
+        if not self.conn or self.db_type != 'sqlite':
+            return
+        try:
+            col_name = coldef.split()[0]
+            existing = self._get_sqlite_columns(table)
+            if col_name not in existing:
+                cur = self.conn.cursor()
+                cur.execute(f"ALTER TABLE {table} ADD COLUMN {coldef}")
+                self.conn.commit()
+        except Exception as e:
+            # Não interrompe o app por falha de migração
+            print(f"Falha ao adicionar coluna '{coldef}' em '{table}': {e}")
+
+    def _migrate_sqlite_schema(self):
+        """Garante que a tabela 'solicitacoes' possua todas as colunas usadas pelo app."""
+        if not self.conn or self.db_type != 'sqlite':
+            return
+        required_cols = [
+            # Campos adicionados em versões recentes; todos opcionais (sem NOT NULL)
+            "numero_pedido_compras INTEGER",
+            "etapa_atual TEXT",
+            "data_numero_pedido TEXT",
+            "data_cotacao TEXT",
+            "data_entrega TEXT",
+            "dias_atendimento INTEGER",
+            "sla_cumprido TEXT",
+            "observacoes TEXT",
+            "numero_requisicao_interno TEXT",
+            "data_requisicao_interna TEXT",
+            "responsavel_suprimentos TEXT",
+            "valor_estimado REAL",
+            "valor_final REAL",
+            "fornecedor_recomendado TEXT",
+            "fornecedor_final TEXT",
+            "anexos_requisicao TEXT",
+            "cotacoes TEXT",
+            "aprovacoes TEXT",
+            "historico_etapas TEXT",
+            "itens TEXT",
+        ]
+        for coldef in required_cols:
+            self._ensure_sqlite_column("solicitacoes", coldef)
     
     def migrate_from_json(self, json_file_path: str):
         """Migra dados do JSON para o banco de dados"""
@@ -433,6 +572,334 @@ class DatabaseManager:
         row = cursor.fetchone()
         return row['valor'] if row else default
     
+    def add_solicitacao(self, solicitacao_data: Dict) -> bool:
+        """Adiciona solicitação ao banco"""
+        if not self.db_available or not self.conn:
+            print("Banco de dados não disponível")
+            return False
+            
+        try:
+            # Garante colunas recentes em bases SQLite legadas antes do INSERT
+            if self.db_type == 'sqlite':
+                try:
+                    self._migrate_sqlite_schema()
+                except Exception:
+                    pass
+            cursor = self.conn.cursor()
+            
+            # Debug: mostra os dados recebidos
+            print(f"Dados da solicitação: {list(solicitacao_data.keys())}")
+            
+            # Monta SQL alinhado ao esquema atual (SQLite/Postgres)
+            sql = '''
+            INSERT INTO solicitacoes (
+                numero_solicitacao_estoque,
+                numero_pedido_compras,
+                solicitante,
+                departamento,
+                descricao,
+                prioridade,
+                local_aplicacao,
+                status,
+                etapa_atual,
+                carimbo_data_hora,
+                data_numero_pedido,
+                data_cotacao,
+                data_entrega,
+                sla_dias,
+                dias_atendimento,
+                sla_cumprido,
+                observacoes,
+                numero_requisicao_interno,
+                data_requisicao_interna,
+                responsavel_suprimentos,
+                valor_estimado,
+                valor_final,
+                fornecedor_recomendado,
+                fornecedor_final,
+                anexos_requisicao,
+                cotacoes,
+                aprovacoes,
+                historico_etapas,
+                itens
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            '''
+            
+            # Garante valores para colunas NOT NULL e serializa JSON
+            values = (
+                solicitacao_data.get('numero_solicitacao_estoque'),
+                solicitacao_data.get('numero_pedido_compras'),
+                solicitacao_data.get('solicitante', ''),
+                solicitacao_data.get('departamento', ''),
+                solicitacao_data.get('descricao', ''),
+                solicitacao_data.get('prioridade', 'Normal'),
+                solicitacao_data.get('local_aplicacao', ''),
+                solicitacao_data.get('status', 'Solicitação'),
+                solicitacao_data.get('etapa_atual', solicitacao_data.get('status', 'Solicitação')),
+                solicitacao_data.get('carimbo_data_hora') or datetime.datetime.now().isoformat(),
+                solicitacao_data.get('data_numero_pedido'),
+                solicitacao_data.get('data_cotacao'),
+                solicitacao_data.get('data_entrega'),
+                solicitacao_data.get('sla_dias', 3),
+                solicitacao_data.get('dias_atendimento'),
+                solicitacao_data.get('sla_cumprido'),
+                solicitacao_data.get('observacoes'),
+                solicitacao_data.get('numero_requisicao_interno'),
+                solicitacao_data.get('data_requisicao_interna'),
+                solicitacao_data.get('responsavel_suprimentos'),
+                solicitacao_data.get('valor_estimado'),
+                solicitacao_data.get('valor_final'),
+                solicitacao_data.get('fornecedor_recomendado'),
+                solicitacao_data.get('fornecedor_final'),
+                json.dumps(solicitacao_data.get('anexos_requisicao', [])),
+                json.dumps(solicitacao_data.get('cotacoes', [])),
+                json.dumps(solicitacao_data.get('aprovacoes', [])),
+                json.dumps(solicitacao_data.get('historico_etapas', [])),
+                json.dumps(solicitacao_data.get('itens', []))
+            )
+            
+            print(f"Executando SQL com {len(values)} valores")
+            cursor.execute(self._sql(sql), values)
+            self.conn.commit()
+            print("Solicitação salva com sucesso no banco")
+            return True
+            
+        except Exception as e:
+            print(f"Erro detalhado ao adicionar solicitação: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def get_all_solicitacoes(self) -> List[Dict]:
+        """Retorna todas as solicitações"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM solicitacoes ORDER BY numero_solicitacao_estoque DESC')
+            rows = cursor.fetchall()
+            
+            solicitacoes = []
+            for row in rows:
+                sol = dict(row)
+                
+                # Mapeia campos do banco para estrutura esperada pelo app
+                if 'data_criacao' in sol:
+                    sol['carimbo_data_hora'] = sol['data_criacao']
+                if 'anexos' in sol:
+                    sol['anexos_requisicao'] = sol['anexos']
+                
+                # Adiciona campos que podem não existir no banco mas são esperados pelo app
+                sol.setdefault('local_aplicacao', '')
+                sol.setdefault('sla_dias', 3)
+                sol.setdefault('dias_atendimento', None)
+                sol.setdefault('numero_pedido_compras', None)
+                sol.setdefault('data_numero_pedido', None)
+                sol.setdefault('data_cotacao', None)
+                sol.setdefault('data_entrega', None)
+                sol.setdefault('observacoes', None)
+                sol.setdefault('numero_requisicao_interno', None)
+                sol.setdefault('data_requisicao_interna', None)
+                sol.setdefault('responsavel_suprimentos', None)
+                sol.setdefault('itens', [])
+                
+                # Converte campos JSON de volta para objetos Python
+                json_fields = ['anexos_requisicao', 'anexos', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']
+                for field in json_fields:
+                    if field in sol:
+                        try:
+                            if isinstance(sol[field], str):
+                                sol[field] = json.loads(sol[field] or '[]')
+                        except:
+                            sol[field] = []
+                
+                solicitacoes.append(sol)
+            return solicitacoes
+        except Exception as e:
+            print(f"Erro ao buscar solicitações: {e}")
+            return []
+    
+    def update_solicitacao(self, numero_solicitacao: int, updates: Dict) -> bool:
+        """Atualiza solicitação específica"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            # Garante colunas recentes em bases SQLite legadas antes do UPDATE
+            if self.db_type == 'sqlite':
+                try:
+                    self._migrate_sqlite_schema()
+                except Exception:
+                    pass
+            cursor = self.conn.cursor()
+            
+            # Constrói query dinâmica baseada nos campos a atualizar
+            set_clauses = []
+            values = []
+            
+            for field, value in updates.items():
+                if field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
+                    set_clauses.append(f"{field} = ?")
+                    values.append(json.dumps(value))
+                else:
+                    set_clauses.append(f"{field} = ?")
+                    values.append(value)
+            
+            values.append(numero_solicitacao)
+            
+            sql = f'''
+            UPDATE solicitacoes 
+            SET {', '.join(set_clauses)}
+            WHERE numero_solicitacao_estoque = ?
+            '''
+            
+            cursor.execute(self._sql(sql), values)
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Erro ao atualizar solicitação: {e}")
+            return False
+    
+    def get_solicitacao_by_numero(self, numero: int) -> Dict:
+        """Busca solicitação por número"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM solicitacoes WHERE numero_solicitacao_estoque = ?'
+            cursor.execute(self._sql(sql), (numero,))
+            row = cursor.fetchone()
+            
+            if row:
+                sol = dict(row)
+                # Converte campos JSON
+                for field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
+                    try:
+                        sol[field] = json.loads(sol[field] or '[]')
+                    except:
+                        sol[field] = []
+                return sol
+            return {}
+        except Exception as e:
+            print(f"Erro ao buscar solicitação: {e}")
+            return {}
+    
+    def add_catalogo_produto(self, codigo: str, nome: str, categoria: str, unidade: str, ativo: bool = True) -> bool:
+        """Adiciona produto ao catálogo"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = '''
+            INSERT INTO catalogo_produtos (codigo, nome, categoria, unidade, ativo)
+            VALUES (?, ?, ?, ?, ?)
+            '''
+            cursor.execute(self._sql(sql), (codigo, nome, categoria, unidade, ativo))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao adicionar produto: {e}")
+            return False
+    
+    def get_catalogo_produtos(self) -> List[Dict]:
+        """Retorna todos os produtos do catálogo"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM catalogo_produtos ORDER BY codigo')
+            return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Erro ao buscar catálogo: {e}")
+            return []
+    
+    def update_catalogo_produtos(self, produtos: List[Dict]) -> bool:
+        """Atualiza catálogo completo de produtos"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            # Limpa catálogo atual
+            cursor.execute('DELETE FROM catalogo_produtos')
+            
+            # Insere novos produtos
+            for produto in produtos:
+                sql = '''
+                INSERT INTO catalogo_produtos (codigo, nome, categoria, unidade, ativo)
+                VALUES (?, ?, ?, ?, ?)
+                '''
+                cursor.execute(self._sql(sql), (
+                    produto.get('codigo'),
+                    produto.get('nome'),
+                    produto.get('categoria', ''),
+                    produto.get('unidade'),
+                    produto.get('ativo', True)
+                ))
+            
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao atualizar catálogo: {e}")
+            return False
+    
+    def add_notificacao(self, perfil: str, numero: int, mensagem: str) -> bool:
+        """Adiciona notificação"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = '''
+            INSERT INTO notificacoes (perfil, numero, mensagem, data, lida)
+            VALUES (?, ?, ?, ?, ?)
+            '''
+            cursor.execute(self._sql(sql), (perfil, numero, mensagem, datetime.datetime.now().isoformat(), False))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao adicionar notificação: {e}")
+            return False
+    
+    def get_notificacoes(self, perfil: str = None) -> List[Dict]:
+        """Retorna notificações"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            if perfil:
+                sql = 'SELECT * FROM notificacoes WHERE perfil = ? ORDER BY data DESC'
+                cursor.execute(self._sql(sql), (perfil,))
+            else:
+                cursor.execute('SELECT * FROM notificacoes ORDER BY data DESC')
+            return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            print(f"Erro ao buscar notificações: {e}")
+            return []
+    
+    def add_movimentacao(self, numero_solicitacao: int, etapa_origem: str, etapa_destino: str, usuario: str, observacoes: str = None) -> bool:
+        """Adiciona movimentação ao histórico"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = '''
+            INSERT INTO movimentacoes (numero_solicitacao, etapa_origem, etapa_destino, usuario, observacoes)
+            VALUES (?, ?, ?, ?, ?)
+            '''
+            cursor.execute(self._sql(sql), (numero_solicitacao, etapa_origem, etapa_destino, usuario, observacoes))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao adicionar movimentação: {e}")
+            return False
+
     def close(self):
         """Fecha conexão"""
         if hasattr(self, 'conn'):

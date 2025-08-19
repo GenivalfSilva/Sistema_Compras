@@ -116,7 +116,53 @@ ALLOWED_FILE_TYPES = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"]
 UPLOAD_ROOT_DEFAULT = "uploads"
 
 def load_data() -> Dict:
-    """Carrega os dados do arquivo JSON"""
+    """Carrega os dados do banco de dados ou arquivo JSON (fallback)"""
+    if USE_DATABASE:
+        try:
+            db = get_database()
+            if db.db_available:
+                # Carrega dados do banco
+                solicitacoes = db.get_all_solicitacoes()
+                
+                # Busca configurações do banco
+                catalogo_produtos = db.get_catalogo_produtos()
+                if not catalogo_produtos:
+                    # Inicializa catálogo padrão se vazio
+                    for produto in get_default_product_catalog():
+                        db.add_catalogo_produto(
+                            produto['codigo'], produto['nome'], 
+                            produto['categoria'], produto['unidade'], 
+                            produto['ativo']
+                        )
+                    catalogo_produtos = db.get_catalogo_produtos()
+                
+                # Busca próximos números
+                proximo_sol = int(db.get_config('proximo_numero_solicitacao', '1'))
+                proximo_ped = int(db.get_config('proximo_numero_pedido', '1'))
+                
+                # Monta estrutura compatível
+                data = {
+                    "solicitacoes": solicitacoes,
+                    "movimentacoes": [],  # Será implementado depois
+                    "configuracoes": {
+                        "sla_por_departamento": {},
+                        "proximo_numero_solicitacao": proximo_sol,
+                        "proximo_numero_pedido": proximo_ped,
+                        "limite_gerencia": float(db.get_config('limite_gerencia', '5000.0')),
+                        "limite_diretoria": float(db.get_config('limite_diretoria', '15000.0')),
+                        "upload_dir": db.get_config('upload_dir', UPLOAD_ROOT_DEFAULT),
+                        "suprimentos_min_cotacoes": int(db.get_config('suprimentos_min_cotacoes', '1')),
+                        "suprimentos_anexo_obrigatorio": db.get_config('suprimentos_anexo_obrigatorio', 'True') == 'True',
+                        "catalogo_produtos": catalogo_produtos
+                    },
+                    "notificacoes": db.get_notificacoes(),
+                    "usuarios": []  # Usuários já estão no banco
+                }
+                return data
+        except Exception as e:
+            print(f"Erro ao carregar dados do banco: {e}")
+    
+    # Fallback para JSON
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
@@ -149,7 +195,27 @@ def init_empty_data() -> Dict:
     }
 
 def save_data(data: Dict):
-    """Salva os dados no arquivo JSON"""
+    """Salva os dados no banco de dados ou arquivo JSON (fallback)"""
+    if USE_DATABASE:
+        try:
+            db = get_database()
+            if db.db_available:
+                # Salva configurações no banco
+                config = data.get("configuracoes", {})
+                for key, value in config.items():
+                    if key != "catalogo_produtos":  # Catálogo tem tabela própria
+                        db.set_config(key, str(value))
+                
+                # Salva catálogo se modificado
+                catalogo = config.get("catalogo_produtos", [])
+                if catalogo:
+                    db.update_catalogo_produtos(catalogo)
+                
+                return  # Sucesso - dados salvos no banco
+        except Exception as e:
+            print(f"Erro ao salvar no banco: {e}")
+    
+    # Fallback para JSON
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
@@ -249,6 +315,13 @@ def get_next_pending_approval(aprovacoes: List[Dict]) -> Dict:
 def add_notification(data: Dict, perfil: str, numero: int, mensagem: str):
     """Adiciona uma notificação interna para o perfil informado."""
     try:
+        if USE_DATABASE:
+            db = get_database()
+            if db.db_available:
+                db.add_notificacao(perfil, numero, mensagem)
+                return
+        
+        # Fallback para JSON
         data.setdefault("notificacoes", [])
         data["notificacoes"].append({
             "perfil": perfil,
@@ -829,8 +902,28 @@ def main():
                     }]
                 }
                 
-                data["solicitacoes"].append(nova_solicitacao)
-                save_data(data)
+                # Salva no banco de dados se disponível
+                if USE_DATABASE:
+                    db = get_database()
+                    if db.db_available:
+                        # Salva solicitação no banco
+                        success = db.add_solicitacao(nova_solicitacao)
+                        if success:
+                            # Atualiza contador no banco
+                            db.set_config('proximo_numero_solicitacao', str(data["configuracoes"]["proximo_numero_solicitacao"]))
+                            st.success(f"✅ Solicitação #{numero_solicitacao} salva no banco Neon com sucesso!")
+                        else:
+                            st.error("❌ Erro ao salvar solicitação no banco de dados. Verifique os logs do console para mais detalhes.")
+                            st.info("💡 **Dica:** Verifique se o banco Neon está acessível e as credenciais estão corretas.")
+                            return
+                    else:
+                        # Fallback para JSON
+                        data["solicitacoes"].append(nova_solicitacao)
+                        save_data(data)
+                else:
+                    # Modo JSON
+                    data["solicitacoes"].append(nova_solicitacao)
+                    save_data(data)
                 
                 # Mensagem de sucesso melhorada
                 success_content = f'<h3 style="color: #065f46; margin: 0 0 1rem 0; font-family: Poppins;">🎉 Solicitação #{numero_solicitacao} Criada com Sucesso!</h3>'
@@ -1265,10 +1358,50 @@ def main():
                                 # Atualiza observações
                                 if 'observacoes' in locals() and observacoes:
                                     data["solicitacoes"][i]["observacoes"] = observacoes
-                                
+
+                                # Persistência: DB quando disponível; fallback JSON caso contrário
+                                try:
+                                    if USE_DATABASE:
+                                        db = get_database()
+                                        if db.db_available:
+                                            updates = {
+                                                "status": proxima_etapa,
+                                                "etapa_atual": proxima_etapa,
+                                                "historico_etapas": data["solicitacoes"][i]["historico_etapas"]
+                                            }
+                                            # Campos por etapa
+                                            if proxima_etapa == "Suprimentos" and data["solicitacoes"][i].get("responsavel_suprimentos"):
+                                                updates["responsavel_suprimentos"] = data["solicitacoes"][i]["responsavel_suprimentos"]
+                                            if proxima_etapa == "Em Cotação":
+                                                updates["numero_pedido_compras"] = data["solicitacoes"][i].get("numero_pedido_compras")
+                                                updates["data_numero_pedido"] = data["solicitacoes"][i].get("data_numero_pedido")
+                                                updates["data_cotacao"] = data["solicitacoes"][i].get("data_cotacao")
+                                                if data["solicitacoes"][i].get("responsavel_suprimentos"):
+                                                    updates["responsavel_suprimentos"] = data["solicitacoes"][i]["responsavel_suprimentos"]
+                                            elif proxima_etapa == "Aguardando Aprovação":
+                                                updates["cotacoes"] = data["solicitacoes"][i].get("cotacoes", [])
+                                                updates["fornecedor_recomendado"] = data["solicitacoes"][i].get("fornecedor_recomendado")
+                                                updates["valor_estimado"] = data["solicitacoes"][i].get("valor_estimado")
+                                            elif proxima_etapa == "Pedido Finalizado":
+                                                updates["data_entrega"] = data["solicitacoes"][i].get("data_entrega")
+                                                updates["valor_final"] = data["solicitacoes"][i].get("valor_final")
+                                                updates["fornecedor_final"] = data["solicitacoes"][i].get("fornecedor_final")
+                                                updates["dias_atendimento"] = data["solicitacoes"][i].get("dias_atendimento")
+                                                updates["sla_cumprido"] = data["solicitacoes"][i].get("sla_cumprido")
+                                            if data["solicitacoes"][i].get("observacoes"):
+                                                updates["observacoes"] = data["solicitacoes"][i]["observacoes"]
+
+                                            ok = db.update_solicitacao(numero_solicitacao, updates)
+                                            if not ok:
+                                                st.error("Não foi possível atualizar a solicitação no banco de dados.")
+                                        else:
+                                            save_data(data)
+                                    else:
+                                        save_data(data)
+                                except Exception as e:
+                                    st.error("Erro ao persistir atualização da solicitação.")
+
                                 break
-                        
-                        save_data(data)
                         
                         st.success(f"✅ Solicitação #{numero_solicitacao} movida para '{proxima_etapa}' com sucesso!")
                         
@@ -1338,8 +1471,35 @@ def main():
                                         add_notification(data, "Suprimentos", numero_solicitacao, "Requisição interna lançada e disponível para tratamento.")
                                     except Exception:
                                         pass
+                                    
+                                    # Persistência: DB quando disponível; fallback JSON caso contrário
+                                    try:
+                                        if USE_DATABASE:
+                                            db = get_database()
+                                            if db.db_available:
+                                                updates = {
+                                                    "numero_requisicao_interno": data["solicitacoes"][i]["numero_requisicao_interno"],
+                                                    "data_requisicao_interna": data["solicitacoes"][i]["data_requisicao_interna"],
+                                                    "status": "Suprimentos",
+                                                    "etapa_atual": "Suprimentos",
+                                                    "historico_etapas": data["solicitacoes"][i]["historico_etapas"]
+                                                }
+                                                if data["solicitacoes"][i].get("responsavel_suprimentos"):
+                                                    updates["responsavel_suprimentos"] = data["solicitacoes"][i]["responsavel_suprimentos"]
+                                                if data["solicitacoes"][i].get("observacoes"):
+                                                    updates["observacoes"] = data["solicitacoes"][i]["observacoes"]
+                                                ok = db.update_solicitacao(numero_solicitacao, updates)
+                                                if not ok:
+                                                    st.error("Não foi possível atualizar a solicitação no banco de dados.")
+                                            else:
+                                                save_data(data)
+                                        else:
+                                            save_data(data)
+                                    except Exception:
+                                        st.error("Erro ao persistir atualização da solicitação.")
+                                    
                                     break
-                            save_data(data)
+                            
                             st.success(f"✅ Solicitação #{numero_solicitacao} atualizada e movida para 'Suprimentos'.")
                             st.rerun()
                         else:
@@ -1528,8 +1688,29 @@ def main():
                                         add_notification(data, "Solicitante", numero_solicitacao, "Solicitação reprovada.")
                                 except Exception:
                                     pass
+                                
+                                # Persistência: DB quando disponível; fallback JSON caso contrário
+                                try:
+                                    if USE_DATABASE:
+                                        db = get_database()
+                                        if db.db_available:
+                                            updates = {
+                                                "status": novo_status,
+                                                "etapa_atual": novo_status,
+                                                "aprovacoes": data["solicitacoes"][i].get("aprovacoes", []),
+                                                "historico_etapas": data["solicitacoes"][i]["historico_etapas"]
+                                            }
+                                            ok = db.update_solicitacao(numero_solicitacao, updates)
+                                            if not ok:
+                                                st.error("Não foi possível atualizar a solicitação no banco de dados.")
+                                        else:
+                                            save_data(data)
+                                    else:
+                                        save_data(data)
+                                except Exception:
+                                    st.error("Erro ao persistir atualização da solicitação.")
+                                
                                 break
-                        save_data(data)
                         if aprovar:
                             st.success("✅ Solicitação aprovada com sucesso! Avance para 'Pedido Finalizado'.")
                         else:
