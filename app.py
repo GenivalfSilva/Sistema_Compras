@@ -690,8 +690,8 @@ def main():
                     help="Define o SLA automaticamente"
                 )
                 # Mostra SLA que será aplicado
-                sla_dias = obter_sla_por_prioridade(prioridade if 'prioridade' in locals() else "Normal")
-                st.info(f"📅 **SLA:** {sla_dias} dias úteis para prioridade '{prioridade if 'prioridade' in locals() else 'Normal'}'")
+                sla_dias = obter_sla_por_prioridade(prioridade)
+                st.info(f"📅 **SLA:** {sla_dias} dias úteis para prioridade '{prioridade}'")
             
             st.markdown(get_form_section_end(), unsafe_allow_html=True)
             
@@ -979,7 +979,13 @@ def main():
                 vence_hoje = 0
                 for s in pend_supr:
                     try:
-                        data_cr = datetime.datetime.fromisoformat(s.get("carimbo_data_hora"))
+                        carimbo = s.get("carimbo_data_hora")
+                        if isinstance(carimbo, str):
+                            data_cr = datetime.datetime.fromisoformat(carimbo)
+                        elif isinstance(carimbo, datetime.datetime):
+                            data_cr = carimbo
+                        else:
+                            continue
                         dias_dec = calcular_dias_uteis(data_cr)
                         sla = s.get("sla_dias", 0) or 0
                         dias_rest = sla - dias_dec
@@ -1044,7 +1050,13 @@ def main():
                 prio_rank_map = {"Urgente": 3, "Alta": 2, "Normal": 1, "Baixa": 0}
                 for s in pend_supr:
                     try:
-                        data_cr = datetime.datetime.fromisoformat(s.get("carimbo_data_hora"))
+                        carimbo = s.get("carimbo_data_hora")
+                        if isinstance(carimbo, str):
+                            data_cr = datetime.datetime.fromisoformat(carimbo)
+                        elif isinstance(carimbo, datetime.datetime):
+                            data_cr = carimbo
+                        else:
+                            continue
                     except Exception:
                         continue
                     dias_dec = calcular_dias_uteis(data_cr)
@@ -1130,7 +1142,13 @@ def main():
             opcoes_solicitacoes = pendentes_opcoes
         else:
             for s in solicitacoes_ativas:
-                data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                carimbo = s["carimbo_data_hora"]
+                if isinstance(carimbo, str):
+                    data_criacao = datetime.datetime.fromisoformat(carimbo).strftime('%d/%m/%Y %H:%M')
+                elif isinstance(carimbo, datetime.datetime):
+                    data_criacao = carimbo.strftime('%d/%m/%Y %H:%M')
+                else:
+                    data_criacao = 'Data inválida'
                 opcoes_solicitacoes.append(
                     f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['status']} ({data_criacao})"
                 )
@@ -1157,7 +1175,13 @@ def main():
                 st.metric("SLA (dias)", solicitacao['sla_dias'])
             
             with col3:
-                data_criacao = datetime.datetime.fromisoformat(solicitacao["carimbo_data_hora"])
+                carimbo = solicitacao["carimbo_data_hora"]
+                if isinstance(carimbo, str):
+                    data_criacao = datetime.datetime.fromisoformat(carimbo)
+                elif isinstance(carimbo, datetime.datetime):
+                    data_criacao = carimbo
+                else:
+                    data_criacao = datetime.datetime.now()
                 dias_decorridos = calcular_dias_uteis(data_criacao)
                 st.metric("Dias Decorridos", dias_decorridos)
                 
@@ -1340,7 +1364,13 @@ def main():
                                         data["solicitacoes"][i]["fornecedor_final"] = fornecedor_final
                                     
                                     # Calcula dias de atendimento e SLA
-                                    data_inicio = datetime.datetime.fromisoformat(s["carimbo_data_hora"])
+                                    carimbo = s["carimbo_data_hora"]
+                                    if isinstance(carimbo, str):
+                                        data_inicio = datetime.datetime.fromisoformat(carimbo)
+                                    elif isinstance(carimbo, datetime.datetime):
+                                        data_inicio = carimbo
+                                    else:
+                                        data_inicio = datetime.datetime.now()
                                     data_fim = datetime.datetime.combine(data_entrega, datetime.time())
                                     dias_atendimento = calcular_dias_uteis(data_inicio, data_fim)
                                     
@@ -1433,13 +1463,83 @@ def main():
             else:
                 opcoes = []
                 for s in pend:
-                    data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                    carimbo = s["carimbo_data_hora"]
+                    if isinstance(carimbo, str):
+                        data_criacao = datetime.datetime.fromisoformat(carimbo).strftime('%d/%m/%Y %H:%M')
+                    elif isinstance(carimbo, datetime.datetime):
+                        data_criacao = carimbo.strftime('%d/%m/%Y %H:%M')
+                    else:
+                        data_criacao = 'Data inválida'
                     opcoes.append(f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['departamento']} ({data_criacao})")
 
                 escolha = st.selectbox("Selecione a solicitação:", opcoes)
                 if escolha:
                     numero_solicitacao = int(escolha.split('#')[1].split(' -')[0])
                     sol = next(s for s in pend if s['numero_solicitacao_estoque'] == numero_solicitacao)
+
+                    # Exibe informações completas da solicitação
+                    st.subheader(f"📋 Detalhes da Solicitação #{numero_solicitacao}")
+                    
+                    # Informações principais em colunas
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Solicitante", sol.get('solicitante', 'N/A'))
+                        st.metric("Departamento", sol.get('departamento', 'N/A'))
+                    with col2:
+                        st.metric("🚨 Prioridade", sol.get('prioridade', 'N/A'))
+                        st.metric("⏱️ SLA (dias)", sol.get('sla_dias', 'N/A'))
+                    with col3:
+                        carimbo = sol.get("carimbo_data_hora")
+                        if isinstance(carimbo, str):
+                            data_criacao_dt = datetime.datetime.fromisoformat(carimbo)
+                        elif isinstance(carimbo, datetime.datetime):
+                            data_criacao_dt = carimbo
+                        else:
+                            data_criacao_dt = datetime.datetime.now()
+                        st.metric("📅 Data Criação", data_criacao_dt.strftime('%d/%m/%Y'))
+                        st.metric("⏰ Hora Criação", data_criacao_dt.strftime('%H:%M'))
+                    with col4:
+                        dias_decorridos = calcular_dias_uteis(data_criacao_dt)
+                        st.metric("📊 Dias Decorridos", dias_decorridos)
+                        if dias_decorridos <= sol.get('sla_dias', 0):
+                            st.success("✅ Dentro do SLA")
+                        else:
+                            st.error("❌ SLA Estourado")
+                    
+                    # Descrição da solicitação
+                    st.markdown("### 📝 Descrição da Solicitação")
+                    st.write(sol.get('descricao', 'Sem descrição'))
+                    
+                    # Local de aplicação
+                    if sol.get('local_aplicacao'):
+                        st.markdown(f"### 📍 Local de Aplicação")
+                        st.write(sol.get('local_aplicacao'))
+                    
+                    # Itens solicitados
+                    if sol.get('itens'):
+                        st.markdown("### 📦 Itens Solicitados")
+                        itens_df = []
+                        for idx, item in enumerate(sol['itens'], 1):
+                            itens_df.append({
+                                "Item": idx,
+                                "Código": item.get('codigo', 'N/A'),
+                                "Descrição": item.get('descricao', 'N/A'),
+                                "Quantidade": item.get('quantidade', 'N/A'),
+                                "Unidade": item.get('unidade', 'N/A'),
+                                "Valor Unit. (R$)": f"R$ {item.get('valor_unitario', 0):.2f}" if item.get('valor_unitario') else 'N/A',
+                                "Valor Total (R$)": f"R$ {item.get('valor_total', 0):.2f}" if item.get('valor_total') else 'N/A'
+                            })
+                        if itens_df:
+                            st.dataframe(pd.DataFrame(itens_df), use_container_width=True)
+                    
+                    # Anexos
+                    if sol.get('anexos_requisicao'):
+                        st.markdown("### 📎 Anexos da Requisição")
+                        st.info(f"📁 {len(sol['anexos_requisicao'])} arquivo(s) anexado(s)")
+                        for anexo in sol['anexos_requisicao']:
+                            st.write(f"• {anexo}")
+                    
+                    st.markdown("---")
 
                     with st.form("lançar_requisicao_form"):
                         col1, col2 = st.columns(2)
@@ -1608,18 +1708,6 @@ def main():
         if perfil_atual not in ["Gerência&Diretoria", "Admin"]:
             st.info("Esta página é restrita a Gerência&Diretoria ou Admin.")
         else:
-            pendentes = [s for s in data.get("solicitacoes", []) if s.get("status") == "Aguardando Aprovação"]
-            if not pendentes:
-                st.success("✅ Não há solicitações pendentes de aprovação.")
-            else:
-                opcoes = []
-                for s in pendentes:
-                    data_criacao = datetime.datetime.fromisoformat(s["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
-                    opcoes.append(f"#{s['numero_solicitacao_estoque']} - {s['solicitante']} - {s['departamento']} - {s['prioridade']} ({data_criacao})")
-
-                escolha = st.selectbox("Selecione a solicitação para aprovar:", opcoes)
-                if escolha:
-                    numero_solicitacao = int(escolha.split('#')[1].split(' -')[0])
                     sol = next(s for s in pendentes if s['numero_solicitacao_estoque'] == numero_solicitacao)
 
                     st.subheader(f"Detalhes da Solicitação #{numero_solicitacao}")
@@ -1628,7 +1716,13 @@ def main():
                         st.metric("Prioridade", sol.get('prioridade', 'N/A'))
                         st.metric("SLA (dias)", sol.get('sla_dias', 'N/A'))
                     with col2:
-                        data_criacao_dt = datetime.datetime.fromisoformat(sol["carimbo_data_hora"]) 
+                        carimbo = sol["carimbo_data_hora"]
+                        if isinstance(carimbo, str):
+                            data_criacao_dt = datetime.datetime.fromisoformat(carimbo)
+                        elif isinstance(carimbo, datetime.datetime):
+                            data_criacao_dt = carimbo
+                        else:
+                            data_criacao_dt = datetime.datetime.now() 
                         st.metric("Dias decorridos", calcular_dias_uteis(data_criacao_dt))
                     with col3:
                         anexos_qtd = len(sol.get('anexos_requisicao', []))
@@ -1892,7 +1986,13 @@ def main():
         solicitacoes_risco = []
         for sol in data["solicitacoes"]:
             if sol["status"] != "Pedido Finalizado":
-                data_criacao = datetime.datetime.fromisoformat(sol["carimbo_data_hora"])
+                carimbo = sol["carimbo_data_hora"]
+                if isinstance(carimbo, str):
+                    data_criacao = datetime.datetime.fromisoformat(carimbo)
+                elif isinstance(carimbo, datetime.datetime):
+                    data_criacao = carimbo
+                else:
+                    continue
                 dias_decorridos = calcular_dias_uteis(data_criacao)
                 
                 if dias_decorridos >= sol["sla_dias"]:
@@ -1958,7 +2058,13 @@ def main():
         if solicitacoes_filtradas:
             historico_df = []
             for sol in solicitacoes_filtradas:
-                data_criacao = datetime.datetime.fromisoformat(sol["carimbo_data_hora"]).strftime('%d/%m/%Y %H:%M')
+                carimbo = sol["carimbo_data_hora"]
+                if isinstance(carimbo, str):
+                    data_criacao = datetime.datetime.fromisoformat(carimbo).strftime('%d/%m/%Y %H:%M')
+                elif isinstance(carimbo, datetime.datetime):
+                    data_criacao = carimbo.strftime('%d/%m/%Y %H:%M')
+                else:
+                    data_criacao = 'Data inválida'
                 
                 historico_df.append({
                     "Nº Solicitação": f"#{sol['numero_solicitacao_estoque']}",
