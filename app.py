@@ -1549,7 +1549,7 @@ def main():
                         with col2:
                             resp = st.text_input("Responsável (Suprimentos)", value=sol.get("responsavel_suprimentos") or nome_atual)
                             obs_req = st.text_area("Observações", height=100)
-                        confirmar = st.form_submit_button("Salvar e Enviar para Suprimentos", use_container_width=True)
+                        confirmar = st.form_submit_button("Salvar e Enviar para Aprovação (Gerência/Diretoria)", use_container_width=True)
 
                     if confirmar:
                         if num_req.strip():
