@@ -710,7 +710,8 @@ def main():
             # Campo Local de Aplicação
             local_aplicacao = st.text_input(
                 "Local de Aplicação*",
-                help="Onde o material será aplicado (ex: Linha 3, Sala 201, Equipamento X)"
+                help="Onde o material será aplicado (ex: Linha 3, Sala 201, Equipamento X)",
+                placeholder="Ex: Sala de Servidores, Linha de Produção 1, Recepção, Bomba d'água - Bloco A..."
             )
 
             # Itens da Solicitação (lista padronizada)
