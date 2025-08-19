@@ -872,6 +872,69 @@ def main():
         if perfil_atual in ["Suprimentos", "Admin"]:
             st.subheader("0️⃣ Pendências de Suprimentos")
             pend_supr = [s for s in data.get("solicitacoes", []) if s.get("status") == "Suprimentos"]
+            
+            # Resumo de prioridades para o setor de suprimentos
+            if pend_supr:
+                urgentes = len([s for s in pend_supr if s.get("prioridade") == "Urgente"])
+                altas = len([s for s in pend_supr if s.get("prioridade") == "Alta"])
+                normais = len([s for s in pend_supr if s.get("prioridade") == "Normal"])
+                baixas = len([s for s in pend_supr if s.get("prioridade") == "Baixa"])
+                
+                # Conta atrasados
+                atrasados = 0
+                vence_hoje = 0
+                for s in pend_supr:
+                    try:
+                        data_cr = datetime.datetime.fromisoformat(s.get("carimbo_data_hora"))
+                        dias_dec = calcular_dias_uteis(data_cr)
+                        sla = s.get("sla_dias", 0) or 0
+                        dias_rest = sla - dias_dec
+                        if dias_rest < 0:
+                            atrasados += 1
+                        elif dias_rest == 0:
+                            vence_hoje += 1
+                    except:
+                        continue
+                
+                st.markdown("### 📊 Resumo de Prioridades")
+                col1, col2, col3, col4, col5, col6 = st.columns(6)
+                
+                with col1:
+                    if urgentes > 0:
+                        st.metric("🔴 Urgentes", urgentes, delta=None, delta_color="inverse")
+                    else:
+                        st.metric("🔴 Urgentes", urgentes)
+                
+                with col2:
+                    if altas > 0:
+                        st.metric("🟠 Altas", altas, delta=None, delta_color="normal")
+                    else:
+                        st.metric("🟠 Altas", altas)
+                
+                with col3:
+                    st.metric("🟡 Normais", normais)
+                
+                with col4:
+                    st.metric("🟢 Baixas", baixas)
+                
+                with col5:
+                    if atrasados > 0:
+                        st.metric("❌ Atrasados", atrasados, delta=None, delta_color="inverse")
+                    else:
+                        st.metric("❌ Atrasados", atrasados)
+                
+                with col6:
+                    if vence_hoje > 0:
+                        st.metric("⚠️ Vence Hoje", vence_hoje, delta=None, delta_color="normal")
+                    else:
+                        st.metric("⚠️ Vence Hoje", vence_hoje)
+                
+                if urgentes > 0 or atrasados > 0:
+                    st.error("🚨 **ATENÇÃO:** Há solicitações URGENTES ou ATRASADAS que precisam de ação imediata!")
+                elif vence_hoje > 0:
+                    st.warning("⚠️ **AVISO:** Há solicitações que vencem HOJE!")
+                
+                st.markdown("---")
             if pend_supr:
                 c1, c2, c3, c4 = st.columns([1,1,1,1])
                 with c1:
@@ -899,14 +962,35 @@ def main():
                         continue
                     if so_atraso and dias_rest >= 0:
                         continue
+                    # Adiciona emoji e cor baseado na prioridade
+                    prio = s.get("prioridade", "Normal")
+                    if prio == "Urgente":
+                        prio_display = "🔴 URGENTE"
+                    elif prio == "Alta":
+                        prio_display = "🟠 ALTA"
+                    elif prio == "Normal":
+                        prio_display = "🟡 NORMAL"
+                    else:  # Baixa
+                        prio_display = "🟢 BAIXA"
+                    
+                    # Status visual para dias restantes
+                    if dias_rest < 0:
+                        status_sla = f"❌ ATRASADO ({abs(dias_rest)}d)"
+                    elif dias_rest == 0:
+                        status_sla = "⚠️ VENCE HOJE"
+                    elif dias_rest == 1:
+                        status_sla = "🟡 VENCE AMANHÃ"
+                    else:
+                        status_sla = f"✅ {dias_rest}d restantes"
+                    
                     rows.append({
                         "Número": s.get("numero_solicitacao_estoque"),
                         "Solicitante": s.get("solicitante"),
                         "Departamento": s.get("departamento"),
-                        "Prioridade": s.get("prioridade"),
+                        "🚨 Prioridade": prio_display,
                         "SLA (dias)": sla,
                         "Dias Decorridos": dias_dec,
-                        "Dias Restantes": dias_rest,
+                        "⏰ Status SLA": status_sla,
                         "Responsável": s.get("responsavel_suprimentos") or "-",
                         "Data/Hora": data_cr.strftime('%d/%m/%Y %H:%M'),
                         "_rank": (dias_rest, -prio_rank_map.get(s.get("prioridade"), 1))
@@ -914,12 +998,30 @@ def main():
 
                 if rows:
                     # ordena: menor dias restantes primeiro (atrasados primeiro), depois prioridade mais alta
-                    rows_sorted = sorted(rows, key=lambda r: (r["Dias Restantes"], r["_rank"][1]))
+                    rows_sorted = sorted(rows, key=lambda r: r["_rank"])
                     df_pend = pd.DataFrame([{k: v for k, v in r.items() if k != "_rank"} for r in rows_sorted])
-                    st.dataframe(df_pend, use_container_width=True)
+                    
+                    # Destaca linhas críticas com cores
+                    def highlight_priority(row):
+                        if "🔴 URGENTE" in str(row["🚨 Prioridade"]):
+                            return ['background-color: #fee2e2; font-weight: bold'] * len(row)
+                        elif "🟠 ALTA" in str(row["🚨 Prioridade"]):
+                            return ['background-color: #fed7aa; font-weight: bold'] * len(row)
+                        elif "❌ ATRASADO" in str(row["⏰ Status SLA"]):
+                            return ['background-color: #fecaca'] * len(row)
+                        elif "⚠️ VENCE HOJE" in str(row["⏰ Status SLA"]):
+                            return ['background-color: #fef3c7'] * len(row)
+                        return [''] * len(row)
+                    
+                    try:
+                        styled_df = df_pend.style.apply(highlight_priority, axis=1)
+                        st.dataframe(styled_df, use_container_width=True)
+                    except:
+                        # Fallback se styling não funcionar
+                        st.dataframe(df_pend, use_container_width=True)
 
                     pendentes_opcoes = [
-                        f"#{r['Número']} - {r['Solicitante']} - Suprimentos ({r['Data/Hora']})" for r in rows_sorted
+                        f"#{r['Número']} - {r['🚨 Prioridade']} - {r['Solicitante']} - {r['⏰ Status SLA']} ({r['Data/Hora']})" for r in rows_sorted
                     ]
                 else:
                     st.info("Nenhuma pendência encontrada com os filtros aplicados.")
