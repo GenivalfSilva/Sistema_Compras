@@ -581,8 +581,14 @@ def main():
                 simple_logout()
             st.rerun()
     
-    # Notificações removidas conforme solicitação do cliente
-    # (Cliente mencionou que com muitas solicitações ficaria muita informação)
+    # Notificações por perfil logado
+    notif_alvos = [perfil_atual] if perfil_atual != "Admin" else ["Gerência&Diretoria", "Suprimentos"]
+    pend_notif = [n for n in data.get("notificacoes", []) if n.get("perfil") in notif_alvos and not n.get("lida")]
+    
+    if pend_notif:
+        st.sidebar.markdown("### 🔔 Notificações")
+        for n in pend_notif[:5]:
+            st.sidebar.info(f"#{n.get('numero')} - {n.get('mensagem')}")
 
     # Navegação por perfil usando módulos
     st.sidebar.markdown("### 🔧 Navegação")
