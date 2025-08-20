@@ -52,7 +52,7 @@ st.set_page_config(
 # Arquivo para armazenar os dados
 DATA_FILE = "compras_sla_data.json"
 
-# Configurações baseadas na planilha Excel
+# Configurações baseadas na planilha Excel - Fluxo completo de 8 etapas
 ETAPAS_PROCESSO = [
     "Solicitação",
     "Suprimentos", 
@@ -60,6 +60,8 @@ ETAPAS_PROCESSO = [
     "Aguardando Aprovação",
     "Aprovado",
     "Reprovado",
+    "Compra feita",
+    "Aguardando Entrega",
     "Pedido Finalizado"
 ]
 

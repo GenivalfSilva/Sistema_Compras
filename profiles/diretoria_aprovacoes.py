@@ -197,13 +197,23 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             
                             data["solicitacoes"][j].setdefault("aprovacoes", []).append(aprovacao_registro)
                             
-                            # Atualiza status e etapa
+                            # Atualiza status e etapa com transição automática
                             if decisao == "Aprovar":
-                                data["solicitacoes"][j]["status"] = "Aprovado"
-                                data["solicitacoes"][j]["etapa_atual"] = "Aprovado"
-                                nova_etapa = "Aprovado"
-                                mensagem_notif = f"Solicitação aprovada por {nome_aprovador}"
+                                # Aprovação: transição automática para Compra feita
+                                data["solicitacoes"][j]["status"] = "Compra feita"
+                                data["solicitacoes"][j]["etapa_atual"] = "Compra feita"
+                                nova_etapa = "Compra feita"
+                                mensagem_notif = f"Solicitação aprovada por {nome_aprovador} - Compra autorizada e realizada"
+                                
+                                # Adiciona etapa intermediária "Aprovado" no histórico
+                                data["solicitacoes"][j]["historico_etapas"].append({
+                                    "etapa": "Aprovado",
+                                    "data_entrada": datetime.datetime.now().isoformat(),
+                                    "usuario": nome_aprovador,
+                                    "observacoes": f"Aprovado - {observacoes_aprovacao}"
+                                })
                             else:
+                                # Reprovação: processo encerrado
                                 data["solicitacoes"][j]["status"] = "Reprovado"
                                 data["solicitacoes"][j]["etapa_atual"] = "Reprovado"
                                 nova_etapa = "Reprovado"
@@ -246,6 +256,7 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                     
                     if decisao == "Aprovar":
                         st.success(f"✅ Solicitação #{numero_sol} aprovada com sucesso!")
+                        st.info(f"🔄 Status automaticamente alterado para 'Compra feita' - Aguardando próxima etapa de entrega.")
                     else:
                         st.warning(f"❌ Solicitação #{numero_sol} reprovada.")
                     
