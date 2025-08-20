@@ -133,20 +133,45 @@ def simple_login(data: Dict, username: str, password: str) -> Optional[Dict]:
             }
             # Define cookie de sessão para persistir após refresh
             _set_login_cookie(user_obj)
+            # Cria backup no session_state também
+            st.session_state["_persistent_user_backup"] = user_obj
             return user_obj
     return None
 
 def ensure_session_persistence():
-    """Garante que a sessão persista após refresh"""
-    # 1) Se já há usuário em memória, nada a fazer
-    if "usuario" in st.session_state:
-        return st.session_state["usuario"]
-    # 2) Tenta restaurar de cookie
-    user = _read_login_cookie()
-    if user:
-        st.session_state["usuario"] = user
-        return user
-    return None
+    """Garante que a sessão persista após refresh - CRÍTICO para evitar logout"""
+    try:
+        # Debug: verifica se o cookie manager está disponível
+        cm = _get_cookie_manager()
+        if cm is None:
+            # Fallback: usa session_state com chave especial para persistência
+            if "_persistent_user_backup" in st.session_state and "usuario" not in st.session_state:
+                st.session_state["usuario"] = st.session_state["_persistent_user_backup"]
+                return st.session_state["usuario"]
+            return st.session_state.get("usuario")
+        
+        # Sempre tenta restaurar de cookie, mesmo se já existe usuário (para casos de refresh)
+        user = _read_login_cookie()
+        if user:
+            # Sempre atualiza/restaura o session_state com dados do cookie
+            st.session_state["usuario"] = user
+            st.session_state["_persistent_user_backup"] = user  # Backup adicional
+            st.session_state["session_persistent"] = True
+            return user
+        
+        # Se não há cookie mas há usuário em memória, mantém
+        if "usuario" in st.session_state:
+            # Cria backup para próxima sessão
+            st.session_state["_persistent_user_backup"] = st.session_state["usuario"]
+            return st.session_state["usuario"]
+        
+        return None
+    except Exception as e:
+        # Em caso de erro, tenta usar backup do session_state
+        if "_persistent_user_backup" in st.session_state:
+            st.session_state["usuario"] = st.session_state["_persistent_user_backup"]
+            return st.session_state["usuario"]
+        return st.session_state.get("usuario")
 
 def simple_logout():
     """Logout simples"""

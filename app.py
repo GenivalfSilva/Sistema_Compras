@@ -39,6 +39,9 @@ if not USE_DATABASE:
     # Fallback para autenticação simples em memória
     from simple_session import simple_login, ensure_session_persistence, simple_logout
 
+# Sistema robusto de persistência para todos os ambientes
+from persistent_session import get_persistent_session, ensure_robust_session_persistence
+
 # Configuração da página
 st.set_page_config(
     page_title="Sistema de Gestão de Compras - SLA",
@@ -479,6 +482,38 @@ def format_brl(valor) -> str:
         return "N/A"
 
 def main():
+    # CRÍTICO: Inicializa chaves de sessão persistentes PRIMEIRO
+    initialize_persistent_keys()
+    
+    # Restaura sessão usando múltiplas estratégias
+    if USE_DATABASE:
+        session_manager = get_session_manager()
+        session_manager.restore_session()
+    else:
+        # Cloud/simple mode: tenta restaurar sessão via cookie
+        try:
+            ensure_session_persistence()
+        except Exception:
+            pass
+
+def initialize_persistent_keys():
+    """Inicializa chaves persistentes que sobrevivem ao refresh"""
+    # Sistema robusto de persistência
+    ensure_robust_session_persistence()
+    
+    # Cria chaves únicas baseadas no session_id do Streamlit
+    if "_app_session_id" not in st.session_state:
+        import time
+        st.session_state["_app_session_id"] = f"ziran_{int(time.time())}"
+    
+    # Preserva dados do usuário em chaves especiais
+    if "usuario" in st.session_state and "_user_backup" not in st.session_state:
+        st.session_state["_user_backup"] = st.session_state["usuario"]
+    
+    # Restaura usuário se perdido mas backup existe
+    if "usuario" not in st.session_state and "_user_backup" in st.session_state:
+        st.session_state["usuario"] = st.session_state["_user_backup"]
+    
     # CSS personalizado com cores da marca Ziran
     st.markdown(get_custom_css(), unsafe_allow_html=True)
     
@@ -504,17 +539,6 @@ def main():
     
     # Carrega os dados
     data = load_data()
-    
-    # Inicializa gerenciador de sessões se disponível
-    if USE_DATABASE:
-        session_manager = get_session_manager()
-        session_manager.restore_session()
-    else:
-        # Cloud/simple mode: tenta restaurar sessão via cookie
-        try:
-            ensure_session_persistence()
-        except Exception:
-            pass
     
     # Sidebar com design melhorado
     st.sidebar.markdown(get_sidebar_css(), unsafe_allow_html=True)
@@ -555,7 +579,9 @@ def main():
                     user = authenticate_user(data, login_user.strip(), login_pass)
                 
                 if user:
-                    st.session_state["usuario"] = user
+                    # Define usuário usando sistema robusto de persistência
+                    ps = get_persistent_session()
+                    ps.save_user_session(user)
                     st.success("Login realizado com sucesso!")
                     st.rerun()
                 else:
@@ -579,6 +605,9 @@ def main():
                 session_manager.logout()
             else:
                 simple_logout()
+            # Limpa sistema robusto de persistência também
+            ps = get_persistent_session()
+            ps.clear_session()
             st.rerun()
     
     # Notificações removidas conforme solicitação do cliente
@@ -647,5 +676,45 @@ def main():
         from profiles.solicitante import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
 
+# Inicialização crítica da sessão ANTES de qualquer coisa
+def init_session():
+    """Inicializa sessão persistente no início da aplicação"""
+    # Primeira tentativa: usar sistema de banco se disponível
+    if USE_DATABASE:
+        try:
+            session_manager = get_session_manager()
+            if session_manager.restore_session():
+                return
+        except Exception:
+            pass
+    
+    # Segunda tentativa: sistema de cookies/fallback
+    try:
+        ensure_session_persistence()
+    except Exception:
+        pass
+    
+    # Terceira tentativa: usar query params como último recurso
+    try:
+        restore_from_url_params()
+    except Exception:
+        pass
+
+def restore_from_url_params():
+    """Restaura sessão usando parâmetros da URL como fallback"""
+    # Verifica se há parâmetros de sessão na URL
+    query_params = st.query_params if hasattr(st, 'query_params') else {}
+    
+    # Se não há usuário logado mas há backup persistente, restaura
+    if "usuario" not in st.session_state:
+        # Tenta diferentes chaves de backup
+        backup_keys = ["_persistent_user_backup", "_session_backup", "_user_data_backup"]
+        for key in backup_keys:
+            if key in st.session_state:
+                st.session_state["usuario"] = st.session_state[key]
+                break
+
 if __name__ == "__main__":
+    # Garante restauração de sessão antes de tudo
+    init_session()
     main()

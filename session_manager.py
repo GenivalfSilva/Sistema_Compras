@@ -91,16 +91,22 @@ class SessionManager:
         return self.get_current_user() is not None
     
     def restore_session(self):
-        """Restaura sessão ao carregar a página"""
-        if "usuario" not in st.session_state:
-            user = self.get_current_user()
-            if user:
-                st.session_state["usuario"] = {
-                    "username": user.get("username"),
-                    "nome": user.get("nome", user.get("username")),
-                    "perfil": user.get("perfil"),
-                    "departamento": user.get("departamento")
-                }
+        """Restaura sessão ao carregar a página - CRÍTICO para evitar logout no refresh"""
+        # Sempre tenta restaurar, mesmo se já existe usuário (para casos de refresh)
+        user = self.get_current_user()
+        if user:
+            # Atualiza/restaura dados do usuário no session_state
+            st.session_state["usuario"] = {
+                "username": user.get("username"),
+                "nome": user.get("nome", user.get("username")),
+                "perfil": user.get("perfil"),
+                "departamento": user.get("departamento")
+            }
+            # Garante que a sessão persistente também está definida
+            if self.session_key not in st.session_state:
+                st.session_state[self.session_key] = str(uuid.uuid4())
+            return True
+        return False
 
 # Singleton para gerenciar instância única
 _session_manager = None
