@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import os
+import hashlib
 from typing import Dict, List
 import datetime
 import streamlit as st
@@ -489,12 +490,15 @@ class DatabaseManager:
     def add_user(self, username: str, nome: str, perfil: str, departamento: str, senha_hash: str, is_hashed=False):
         """Adiciona usuário ao banco"""
         if not self.db_available or not self.conn:
+            print(f"Database not available for user creation")
             return False
             
         try:
             cursor = self.conn.cursor()
             if not is_hashed:
+                original_password = senha_hash
                 senha_hash = hashlib.sha256(senha_hash.encode()).hexdigest()
+                print(f"Creating user {username} with password hash: {senha_hash[:10]}...")
             
             sql = '''
             INSERT INTO usuarios (username, nome, perfil, departamento, senha_hash)
@@ -502,6 +506,7 @@ class DatabaseManager:
             '''
             cursor.execute(self._sql(sql), (username, nome, perfil, departamento, senha_hash))
             self.conn.commit()
+            print(f"User {username} created successfully")
             return True
         except Exception as e:
             # Rollback transaction on error to prevent cascade failures
@@ -515,6 +520,7 @@ class DatabaseManager:
     def authenticate_user(self, username: str, password: str) -> Dict:
         """Autentica usuário e retorna dados se válido"""
         if not self.db_available or not self.conn:
+            print(f"Database not available for authentication")
             return {}
             
         try:
@@ -523,12 +529,24 @@ class DatabaseManager:
             cursor.execute(self._sql(sql), (username,))
             user = cursor.fetchone()
             
+            print(f"Login attempt - Username: {username}")
+            
             if user:
                 user_dict = dict(user)
                 # Verifica senha
                 senha_hash = hashlib.sha256(password.encode()).hexdigest()
-                if user_dict['senha_hash'] == senha_hash:
+                stored_hash = user_dict.get('senha_hash', '')
+                
+                print(f"User found: {user_dict.get('nome', 'Unknown')}")
+                print(f"Password hash match: {senha_hash == stored_hash}")
+                
+                if stored_hash == senha_hash:
+                    print(f"Authentication successful for {username}")
                     return user_dict
+                else:
+                    print(f"Password mismatch for {username}")
+            else:
+                print(f"User {username} not found in database")
             return {}
         except Exception as e:
             # Rollback transaction on error to prevent cascade failures
@@ -612,7 +630,7 @@ class DatabaseManager:
                 self.conn.rollback()
             except:
                 pass
-            print(f"Erro ao buscar configuração: {e}")
+            # Silencia erros de configuração para evitar spam no log
             return default
     
     def set_config(self, key: str, value: str) -> bool:

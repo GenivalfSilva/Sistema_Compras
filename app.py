@@ -547,9 +547,10 @@ def initialize_persistent_keys():
     if USE_DATABASE:
         db = get_database()
         # Cria admin se não existir
-        admin_exists = db.authenticate_user("admin", "admin123")
-        if not admin_exists:
-            db.add_user("admin", "Administrador", "Admin", "TI", "admin123")
+        admin_user = db.get_user_by_username("admin")
+        if not admin_user:
+            success = db.add_user("admin", "Administrador", "Admin", "TI", "admin123")
+            print(f"Admin user creation: {'Success' if success else 'Failed'}")
         # Migra usuários do JSON para o banco (se houver)
         migrate_users_to_db_from_json(data)
     else:
