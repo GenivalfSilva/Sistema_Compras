@@ -763,6 +763,210 @@ class DatabaseManager:
             print(f"Erro ao adicionar movimentação: {e}")
             return False
     
+    def add_solicitacao(self, solicitacao_data: Dict) -> bool:
+        """Adiciona nova solicitação"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = '''
+            INSERT INTO solicitacoes (
+                numero_solicitacao_estoque,
+                numero_pedido_compras,
+                solicitante,
+                departamento,
+                descricao,
+                prioridade,
+                local_aplicacao,
+                status,
+                etapa_atual,
+                carimbo_data_hora,
+                data_numero_pedido,
+                data_cotacao,
+                data_entrega,
+                sla_dias,
+                dias_atendimento,
+                sla_cumprido,
+                observacoes,
+                numero_requisicao_interno,
+                data_requisicao_interna,
+                responsavel_suprimentos,
+                valor_estimado,
+                valor_final,
+                fornecedor_recomendado,
+                fornecedor_final,
+                anexos_requisicao,
+                cotacoes,
+                aprovacoes,
+                historico_etapas,
+                itens
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            '''
+            
+            # Garante valores para colunas NOT NULL e serializa JSON
+            values = (
+                solicitacao_data.get('numero_solicitacao_estoque'),
+                solicitacao_data.get('numero_pedido_compras'),
+                solicitacao_data.get('solicitante', ''),
+                solicitacao_data.get('departamento', ''),
+                solicitacao_data.get('descricao', ''),
+                solicitacao_data.get('prioridade', 'Normal'),
+                solicitacao_data.get('local_aplicacao', ''),
+                solicitacao_data.get('status', 'Solicitação'),
+                solicitacao_data.get('etapa_atual', solicitacao_data.get('status', 'Solicitação')),
+                solicitacao_data.get('carimbo_data_hora') or datetime.datetime.now().isoformat(),
+                solicitacao_data.get('data_numero_pedido'),
+                solicitacao_data.get('data_cotacao'),
+                solicitacao_data.get('data_entrega'),
+                solicitacao_data.get('sla_dias', 3),
+                solicitacao_data.get('dias_atendimento'),
+                solicitacao_data.get('sla_cumprido'),
+                solicitacao_data.get('observacoes'),
+                solicitacao_data.get('numero_requisicao_interno'),
+                solicitacao_data.get('data_requisicao_interna'),
+                solicitacao_data.get('responsavel_suprimentos'),
+                solicitacao_data.get('valor_estimado'),
+                solicitacao_data.get('valor_final'),
+                solicitacao_data.get('fornecedor_recomendado'),
+                solicitacao_data.get('fornecedor_final'),
+                json.dumps(solicitacao_data.get('anexos_requisicao', [])),
+                json.dumps(solicitacao_data.get('cotacoes', [])),
+                json.dumps(solicitacao_data.get('aprovacoes', [])),
+                json.dumps(solicitacao_data.get('historico_etapas', [])),
+                json.dumps(solicitacao_data.get('itens', []))
+            )
+            
+            cursor.execute(self._sql(sql), values)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao salvar solicitação: {e}")
+            return False
+    
+    def get_all_solicitacoes(self) -> List[Dict]:
+        """Retorna todas as solicitações"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM solicitacoes ORDER BY numero_solicitacao_estoque DESC')
+            solicitacoes = []
+            for row in cursor.fetchall():
+                sol = dict(row)
+                # Deserializa campos JSON
+                for field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
+                    try:
+                        if sol.get(field):
+                            sol[field] = json.loads(sol[field])
+                        else:
+                            sol[field] = []
+                    except:
+                        sol[field] = []
+                # Garante campos obrigatórios
+                sol.setdefault('local_aplicacao', '')
+                sol.setdefault('sla_dias', 3)
+                sol.setdefault('dias_atendimento', None)
+                sol.setdefault('numero_pedido_compras', None)
+                sol.setdefault('data_numero_pedido', None)
+                sol.setdefault('data_cotacao', None)
+                sol.setdefault('data_entrega', None)
+                sol.setdefault('observacoes', None)
+                solicitacoes.append(sol)
+            return solicitacoes
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar solicitações: {e}")
+            return []
+    
+    def update_solicitacao(self, numero_solicitacao: int, updates: Dict) -> bool:
+        """Atualiza solicitação específica"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            # Garante colunas recentes em bases SQLite legadas antes do UPDATE
+            if self.db_type == 'sqlite':
+                try:
+                    self._migrate_sqlite_schema()
+                except Exception:
+                    pass
+            cursor = self.conn.cursor()
+            
+            # Constrói query dinâmica baseada nos campos a atualizar
+            set_clauses = []
+            values = []
+            
+            for field, value in updates.items():
+                if field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
+                    set_clauses.append(f"{field} = ?")
+                    values.append(json.dumps(value))
+                else:
+                    set_clauses.append(f"{field} = ?")
+                    values.append(value)
+            
+            values.append(numero_solicitacao)
+            
+            sql = f'''
+            UPDATE solicitacoes 
+            SET {', '.join(set_clauses)}
+            WHERE numero_solicitacao_estoque = ?
+            '''
+            
+            cursor.execute(self._sql(sql), values)
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao atualizar solicitação: {e}")
+            return False
+    
+    def get_solicitacao_by_numero(self, numero: int) -> Dict:
+        """Busca solicitação por número"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM solicitacoes WHERE numero_solicitacao_estoque = ?'
+            cursor.execute(self._sql(sql), (numero,))
+            row = cursor.fetchone()
+            if row:
+                sol = dict(row)
+                # Deserializa campos JSON
+                for field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
+                    try:
+                        if sol.get(field):
+                            sol[field] = json.loads(sol[field])
+                        else:
+                            sol[field] = []
+                    except:
+                        sol[field] = []
+                return sol
+            return {}
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar solicitação: {e}")
+            return {}
+    
     def delete_session(self, session_id: str) -> bool:
         """Remove sessão"""
         if not self.db_available or not self.conn:
