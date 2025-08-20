@@ -479,6 +479,11 @@ class DatabaseManager:
             print(f"Migração concluída de {json_file_path}")
             
         except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
             print(f"Erro na migração: {e}")
     
     def add_user(self, username: str, nome: str, perfil: str, departamento: str, senha_hash: str, is_hashed=False):
@@ -486,15 +491,11 @@ class DatabaseManager:
         if not self.db_available or not self.conn:
             return False
             
-        cursor = self.conn.cursor()
-        
-        if not is_hashed:
-            # Hash da senha se necessário
-            import hashlib
-            SALT = "ziran_local_salt_v1"
-            senha_hash = hashlib.sha256((SALT + senha_hash).encode("utf-8")).hexdigest()
-        
         try:
+            cursor = self.conn.cursor()
+            if not is_hashed:
+                senha_hash = hashlib.sha256(senha_hash.encode()).hexdigest()
+            
             sql = '''
             INSERT INTO usuarios (username, nome, perfil, departamento, senha_hash)
             VALUES (?, ?, ?, ?, ?)
@@ -502,358 +503,14 @@ class DatabaseManager:
             cursor.execute(self._sql(sql), (username, nome, perfil, departamento, senha_hash))
             self.conn.commit()
             return True
-        except sqlite3.IntegrityError:
-            return False  # Usuário já existe
-        except Exception:
-            return False
-    
-    def authenticate_user(self, username: str, password: str) -> Dict:
-        """Autentica usuário"""
-        if not self.db_available or not self.conn:
-            return {}
-            
-        try:
-            import hashlib
-            SALT = "ziran_local_salt_v1"
-            senha_hash = hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
-            
-            cursor = self.conn.cursor()
-            sql = '''
-            SELECT username, nome, perfil, departamento
-            FROM usuarios 
-            WHERE username = ? AND senha_hash = ?
-            '''
-            cursor.execute(self._sql(sql), (username, senha_hash))
-            
-            row = cursor.fetchone()
-            if row:
-                return dict(row)
-            return {}
-        except Exception:
-            return {}
-    
-    def authenticate_user_by_username(self, username: str) -> Dict:
-        """Busca usuário apenas pelo username (para sessões)"""
-        cursor = self.conn.cursor()
-        sql = '''
-        SELECT username, nome, perfil, departamento
-        FROM usuarios 
-        WHERE username = ?
-        '''
-        cursor.execute(self._sql(sql), (username,))
-        
-        row = cursor.fetchone()
-        if row:
-            return dict(row)
-        return {}
-    
-    def get_all_users(self) -> List[Dict]:
-        """Retorna todos os usuários"""
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT username, nome, perfil, departamento FROM usuarios')
-        return [dict(row) for row in cursor.fetchall()]
-    
-    def update_user_password(self, username: str, new_password: str) -> bool:
-        """Atualiza a senha de um usuário existente."""
-        if not self.db_available or not self.conn:
-            return False
-        try:
-            import hashlib
-            SALT = "ziran_local_salt_v1"
-            senha_hash = hashlib.sha256((SALT + new_password).encode("utf-8")).hexdigest()
-            cursor = self.conn.cursor()
-            sql = '''
-            UPDATE usuarios SET senha_hash = ? WHERE username = ?
-            '''
-            cursor.execute(self._sql(sql), (senha_hash, username))
-            self.conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            return False
-    
-    def create_session(self, username: str, session_id: str, expires_hours=24):
-        """Cria sessão persistente"""
-        if not self.db_available or not self.conn:
-            return False
-            
-        try:
-            cursor = self.conn.cursor()
-            expires_at = datetime.datetime.now() + datetime.timedelta(hours=expires_hours)
-            
-            if self.db_type == 'postgres':
-                cursor.execute('''
-                INSERT INTO sessoes (id, username, expires_at)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, expires_at = EXCLUDED.expires_at
-                ''', (session_id, username, expires_at))
-            else:
-                cursor.execute('''
-                INSERT OR REPLACE INTO sessoes (id, username, expires_at)
-                VALUES (?, ?, ?)
-                ''', (session_id, username, expires_at))
-            self.conn.commit()
-            return True
-        except Exception:
-            return False
-    
-    def validate_session(self, session_id: str) -> str:
-        """Valida sessão e retorna username"""
-        cursor = self.conn.cursor()
-        sql = '''
-        SELECT username FROM sessoes 
-        WHERE id = ? AND expires_at > CURRENT_TIMESTAMP
-        '''
-        cursor.execute(self._sql(sql), (session_id,))
-        
-        row = cursor.fetchone()
-        return row['username'] if row else None
-    
-    def delete_session(self, session_id: str):
-        """Remove sessão"""
-        cursor = self.conn.cursor()
-        sql = 'DELETE FROM sessoes WHERE id = ?'
-        cursor.execute(self._sql(sql), (session_id,))
-        self.conn.commit()
-    
-    def set_config(self, key: str, value: str):
-        """Define configuração"""
-        cursor = self.conn.cursor()
-        if self.db_type == 'postgres':
-            cursor.execute('''
-            INSERT INTO configuracoes (chave, valor, updated_at)
-            VALUES (%s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = CURRENT_TIMESTAMP
-            ''', (key, value))
-        else:
-            cursor.execute('''
-            INSERT OR REPLACE INTO configuracoes (chave, valor, updated_at)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-            ''', (key, value))
-        self.conn.commit()
-    
-    def get_config(self, key: str, default=None):
-        """Obtém configuração"""
-        cursor = self.conn.cursor()
-        sql = 'SELECT valor FROM configuracoes WHERE chave = ?'
-        cursor.execute(self._sql(sql), (key,))
-        row = cursor.fetchone()
-        return row['valor'] if row else default
-    
-    def add_solicitacao(self, solicitacao_data: Dict) -> bool:
-        """Adiciona solicitação ao banco"""
-        if not self.db_available or not self.conn:
-            print("Banco de dados não disponível")
-            return False
-            
-        try:
-            # Garante colunas recentes em bases SQLite legadas antes do INSERT
-            if self.db_type == 'sqlite':
-                try:
-                    self._migrate_sqlite_schema()
-                except Exception:
-                    pass
-            cursor = self.conn.cursor()
-            
-            # Debug: mostra os dados recebidos
-            print(f"Dados da solicitação: {list(solicitacao_data.keys())}")
-            
-            # Monta SQL alinhado ao esquema atual (SQLite/Postgres)
-            sql = '''
-            INSERT INTO solicitacoes (
-                numero_solicitacao_estoque,
-                numero_pedido_compras,
-                solicitante,
-                departamento,
-                descricao,
-                prioridade,
-                local_aplicacao,
-                status,
-                etapa_atual,
-                carimbo_data_hora,
-                data_numero_pedido,
-                data_cotacao,
-                data_entrega,
-                sla_dias,
-                dias_atendimento,
-                sla_cumprido,
-                observacoes,
-                numero_requisicao_interno,
-                data_requisicao_interna,
-                responsavel_suprimentos,
-                valor_estimado,
-                valor_final,
-                fornecedor_recomendado,
-                fornecedor_final,
-                anexos_requisicao,
-                cotacoes,
-                aprovacoes,
-                historico_etapas,
-                itens,
-                data_criacao
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            '''
-            
-            # Garante valores para colunas NOT NULL e serializa JSON
-            values = (
-                solicitacao_data.get('numero_solicitacao_estoque'),
-                solicitacao_data.get('numero_pedido_compras'),
-                solicitacao_data.get('solicitante', ''),
-                solicitacao_data.get('departamento', ''),
-                solicitacao_data.get('descricao', ''),
-                solicitacao_data.get('prioridade', 'Normal'),
-                solicitacao_data.get('local_aplicacao', ''),
-                solicitacao_data.get('status', 'Solicitação'),
-                solicitacao_data.get('etapa_atual', solicitacao_data.get('status', 'Solicitação')),
-                solicitacao_data.get('carimbo_data_hora') or datetime.datetime.now().isoformat(),
-                solicitacao_data.get('data_numero_pedido'),
-                solicitacao_data.get('data_cotacao'),
-                solicitacao_data.get('data_entrega'),
-                solicitacao_data.get('sla_dias', 3),
-                solicitacao_data.get('dias_atendimento'),
-                solicitacao_data.get('sla_cumprido'),
-                solicitacao_data.get('observacoes'),
-                solicitacao_data.get('numero_requisicao_interno'),
-                solicitacao_data.get('data_requisicao_interna'),
-                solicitacao_data.get('responsavel_suprimentos'),
-                solicitacao_data.get('valor_estimado'),
-                solicitacao_data.get('valor_final'),
-                solicitacao_data.get('fornecedor_recomendado'),
-                solicitacao_data.get('fornecedor_final'),
-                json.dumps(solicitacao_data.get('anexos_requisicao', [])),
-                json.dumps(solicitacao_data.get('cotacoes', [])),
-                json.dumps(solicitacao_data.get('aprovacoes', [])),
-                json.dumps(solicitacao_data.get('historico_etapas', [])),
-                json.dumps(solicitacao_data.get('itens', [])),
-                datetime.datetime.now()  # data_criacao
-            )
-            
-            print(f"Executando SQL com {len(values)} valores")
-            cursor.execute(self._sql(sql), values)
-            self.conn.commit()
-            print("Solicitação salva com sucesso no banco")
-            return True
-            
         except Exception as e:
-            print(f"Erro detalhado ao adicionar solicitação: {e}")
-            import traceback
-            traceback.print_exc()
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao adicionar usuário: {e}")
             return False
-    
-    def get_all_solicitacoes(self) -> List[Dict]:
-        """Retorna todas as solicitações"""
-        if not self.db_available or not self.conn:
-            return []
-            
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute('SELECT * FROM solicitacoes ORDER BY numero_solicitacao_estoque DESC')
-            rows = cursor.fetchall()
-            
-            solicitacoes = []
-            for row in rows:
-                sol = dict(row)
-                
-                # Mapeia campos do banco para estrutura esperada pelo app
-                if 'data_criacao' in sol:
-                    sol['carimbo_data_hora'] = sol['data_criacao']
-                if 'anexos' in sol:
-                    sol['anexos_requisicao'] = sol['anexos']
-                
-                # Adiciona campos que podem não existir no banco mas são esperados pelo app
-                sol.setdefault('local_aplicacao', '')
-                sol.setdefault('sla_dias', 3)
-                sol.setdefault('dias_atendimento', None)
-                sol.setdefault('numero_pedido_compras', None)
-                sol.setdefault('data_numero_pedido', None)
-                sol.setdefault('data_cotacao', None)
-                sol.setdefault('data_entrega', None)
-                sol.setdefault('observacoes', None)
-                sol.setdefault('numero_requisicao_interno', None)
-                sol.setdefault('data_requisicao_interna', None)
-                sol.setdefault('responsavel_suprimentos', None)
-                sol.setdefault('itens', [])
-                
-                # Converte campos JSON de volta para objetos Python
-                json_fields = ['anexos_requisicao', 'anexos', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']
-                for field in json_fields:
-                    if field in sol:
-                        try:
-                            if isinstance(sol[field], str):
-                                sol[field] = json.loads(sol[field] or '[]')
-                        except:
-                            sol[field] = []
-                
-                solicitacoes.append(sol)
-            return solicitacoes
-        except Exception as e:
-            print(f"Erro ao buscar solicitações: {e}")
-            return []
-    
-    def update_solicitacao(self, numero_solicitacao: int, updates: Dict) -> bool:
-        """Atualiza solicitação específica"""
-        if not self.db_available or not self.conn:
-            return False
-            
-        try:
-            # Garante colunas recentes em bases SQLite legadas antes do UPDATE
-            if self.db_type == 'sqlite':
-                try:
-                    self._migrate_sqlite_schema()
-                except Exception:
-                    pass
-            cursor = self.conn.cursor()
-            
-            # Constrói query dinâmica baseada nos campos a atualizar
-            set_clauses = []
-            values = []
-            
-            for field, value in updates.items():
-                if field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
-                    set_clauses.append(f"{field} = ?")
-                    values.append(json.dumps(value))
-                else:
-                    set_clauses.append(f"{field} = ?")
-                    values.append(value)
-            
-            values.append(numero_solicitacao)
-            
-            sql = f'''
-            UPDATE solicitacoes 
-            SET {', '.join(set_clauses)}
-            WHERE numero_solicitacao_estoque = ?
-            '''
-            
-            cursor.execute(self._sql(sql), values)
-            self.conn.commit()
-            return cursor.rowcount > 0
-        except Exception as e:
-            print(f"Erro ao atualizar solicitação: {e}")
-            return False
-    
-    def get_solicitacao_by_numero(self, numero: int) -> Dict:
-        """Busca solicitação por número"""
-        if not self.db_available or not self.conn:
-            return {}
-            
-        try:
-            cursor = self.conn.cursor()
-            sql = 'SELECT * FROM solicitacoes WHERE numero_solicitacao_estoque = ?'
-            cursor.execute(self._sql(sql), (numero,))
-            row = cursor.fetchone()
-            
-            if row:
-                sol = dict(row)
-                # Converte campos JSON
-                for field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
-                    try:
-                        sol[field] = json.loads(sol[field] or '[]')
-                    except:
-                        sol[field] = []
-                return sol
-            return {}
-        except Exception as e:
-            print(f"Erro ao buscar solicitação: {e}")
-            return {}
     
     def add_catalogo_produto(self, codigo: str, nome: str, categoria: str, unidade: str, ativo: bool = True) -> bool:
         """Adiciona produto ao catálogo"""
@@ -870,6 +527,11 @@ class DatabaseManager:
             self.conn.commit()
             return True
         except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
             print(f"Erro ao adicionar produto: {e}")
             return False
     
@@ -883,6 +545,11 @@ class DatabaseManager:
             cursor.execute('SELECT * FROM catalogo_produtos ORDER BY codigo')
             return [dict(row) for row in cursor.fetchall()]
         except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
             print(f"Erro ao buscar catálogo: {e}")
             return []
     
@@ -967,6 +634,26 @@ class DatabaseManager:
             return True
         except Exception as e:
             print(f"Erro ao adicionar movimentação: {e}")
+            return False
+    
+    def delete_session(self, session_id: str) -> bool:
+        """Remove sessão"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'DELETE FROM sessoes WHERE id = ?'
+            cursor.execute(self._sql(sql), (session_id,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao deletar sessão: {e}")
             return False
 
     def close(self):

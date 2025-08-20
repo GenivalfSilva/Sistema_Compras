@@ -169,7 +169,7 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                         # Atualiza a solicitação
                         for i, s in enumerate(data["solicitacoes"]):
                             if s["numero_solicitacao_estoque"] == numero_solicitacao:
-                                data["solicitacoes"][i]["numero_pedido"] = numero_pedido.strip()
+                                data["solicitacoes"][i]["numero_pedido_compras"] = numero_pedido.strip()
                                 data["solicitacoes"][i]["data_finalizacao"] = data_finalizacao.isoformat()
                                 data["solicitacoes"][i]["status"] = "Pedido Finalizado"
                                 data["solicitacoes"][i]["etapa_atual"] = "Pedido Finalizado"
@@ -219,7 +219,7 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                                         db = get_database()
                                         if db.db_available:
                                             updates = {
-                                                "numero_pedido": numero_pedido.strip(),
+                                                "numero_pedido_compras": numero_pedido.strip(),
                                                 "data_finalizacao": data_finalizacao.isoformat(),
                                                 "status": "Pedido Finalizado",
                                                 "etapa_atual": "Pedido Finalizado",

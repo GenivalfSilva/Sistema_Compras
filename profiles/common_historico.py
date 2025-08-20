@@ -85,7 +85,7 @@ def historico_por_etapa(data: Dict, usuario: Dict):
                 "Status": sol["status"],
                 "Requisição": sol.get("numero_requisicao_interno", "N/A"),
                 "Data da Requisição": data_requisicao,
-                "Pedido de Compra": sol.get("numero_pedido", sol.get("numero_pedido_compras", "N/A")),
+                "Pedido de Compra": str(sol.get("numero_pedido", sol.get("numero_pedido_compras", "N/A")) or "N/A"),
                 "Data do Pedido de Compra": data_pedido,
                 "SLA (dias)": sol["sla_dias"],
                 "Dias Atendimento": sol.get("dias_atendimento", "N/A"),
