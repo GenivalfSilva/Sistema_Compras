@@ -529,24 +529,15 @@ class DatabaseManager:
             cursor.execute(self._sql(sql), (username,))
             user = cursor.fetchone()
             
-            print(f"Login attempt - Username: {username}")
-            
             if user:
                 user_dict = dict(user)
-                # Verifica senha
-                senha_hash = hashlib.sha256(password.encode()).hexdigest()
                 stored_hash = user_dict.get('senha_hash', '')
                 
-                print(f"User found: {user_dict.get('nome', 'Unknown')}")
-                print(f"Password hash match: {senha_hash == stored_hash}")
+                # Verifica senha usando SHA256
+                senha_hash = hashlib.sha256(password.encode()).hexdigest()
                 
                 if stored_hash == senha_hash:
-                    print(f"Authentication successful for {username}")
                     return user_dict
-                else:
-                    print(f"Password mismatch for {username}")
-            else:
-                print(f"User {username} not found in database")
             return {}
         except Exception as e:
             # Rollback transaction on error to prevent cascade failures

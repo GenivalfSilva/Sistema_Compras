@@ -543,17 +543,8 @@ def initialize_persistent_keys():
     # Sidebar com design melhorado
     st.sidebar.markdown(get_sidebar_css(), unsafe_allow_html=True)
     
-    # Garante que existe um usuário admin
-    if USE_DATABASE:
-        db = get_database()
-        # Cria admin se não existir
-        admin_user = db.get_user_by_username("admin")
-        if not admin_user:
-            success = db.add_user("admin", "Administrador", "Admin", "TI", "admin123")
-            print(f"Admin user creation: {'Success' if success else 'Failed'}")
-        # Migra usuários do JSON para o banco (se houver)
-        migrate_users_to_db_from_json(data)
-    else:
+    # Para ambiente local sem banco, garante usuário admin no JSON
+    if not USE_DATABASE:
         changed = ensure_admin_user(data)
         if changed:
             save_data(data)
