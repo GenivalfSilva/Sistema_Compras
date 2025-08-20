@@ -1,5 +1,6 @@
 """
 Implementação da funcionalidade Nova Solicitação para o perfil Solicitante
+Atualizado: 2025-08-20 - Ordem corrigida e SLA dinâmico
 """
 
 import streamlit as st
@@ -23,7 +24,12 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     
     # Constantes
     DEPARTAMENTOS = ["Manutenção", "TI", "RH", "Financeiro", "Marketing", "Operações", "Outro"]
-    PRIORIDADES = ["Normal", "Urgente", "Baixa", "Alta"]
+    PRIORIDADES = [
+        ("Normal", "3 dias úteis"),
+        ("Urgente", "1 dia útil"), 
+        ("Baixa", "5 dias úteis"),
+        ("Alta", "2 dias úteis")
+    ]
     ALLOWED_FILE_TYPES = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"]
     
     # Funções auxiliares
@@ -92,28 +98,374 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     st.markdown(get_section_header_html('📝 Nova Solicitação de Compra'), unsafe_allow_html=True)
     st.markdown(get_info_box_html('💡 <strong>Baseado na estrutura da planilha Excel - Aba \'Solicitação\'</strong>'), unsafe_allow_html=True)
     
+    
     st.markdown(get_form_container_start(), unsafe_allow_html=True)
     
-    with st.form("nova_solicitacao"):
-        # Seção 1: Dados do Solicitante
+    # Seção 1: Dados do Solicitante (sem formulário para evitar botão)
+    st.markdown(get_form_section_start(), unsafe_allow_html=True)
+    st.markdown(get_form_section_title('👤 Dados do Solicitante'), unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        solicitante = st.text_input("Solicitante (Nome e Sobrenome)*", 
+                                  help="Campo obrigatório conforme planilha",
+                                  placeholder="Digite o nome completo do solicitante",
+                                  key="solicitante_input")
+        departamento = st.selectbox("Departamento*", DEPARTAMENTOS, help="Departamento do solicitante", key="departamento_input")
+    
+    with col2:
+        # Cria opções formatadas para o selectbox
+        opcoes_prioridade = [f"{nome} ({sla})" for nome, sla in PRIORIDADES]
+        prioridade_selecionada = st.selectbox("Prioridade*", opcoes_prioridade, help="Define o SLA automaticamente", key="prioridade_input")
+        
+        # Extrai apenas o nome da prioridade
+        prioridade = prioridade_selecionada.split(" (")[0]
+        sla_dias = obter_sla_por_prioridade(prioridade)
+    
+    st.markdown(get_form_section_end(), unsafe_allow_html=True)
+    
+    # Seção 2: Itens da Solicitação (fora do form para permitir interatividade)
+    st.markdown(get_form_section_start(), unsafe_allow_html=True)
+    st.markdown(get_form_section_title('🧾 Itens da Solicitação'), unsafe_allow_html=True)
+    
+    # Obtém catálogo de produtos
+    catalogo = []
+    if USE_DATABASE:
+        try:
+            db = get_database()
+            if db.db_available:
+                catalogo = db.get_catalogo_produtos()
+        except Exception:
+            pass
+    
+    if not catalogo:
+        catalogo = data.get("configuracoes", {}).get("catalogo_produtos", [])
+    
+    if not catalogo:
+        st.warning("⚠️ Catálogo de produtos vazio. Configure em '📦 Catálogo de Produtos' antes de criar solicitações.")
+    else:
+        # Inicializa lista de itens na sessão se não existir
+        if 'itens_solicitacao' not in st.session_state:
+            st.session_state.itens_solicitacao = []
+        
+        # Gerenciamento de produtos
+        with st.expander("🔧 **Gerenciar Catálogo de Produtos**", expanded=False):
+            tab_add, tab_edit, tab_delete = st.tabs(["➕ Adicionar", "✏️ Editar", "🗑️ Excluir"])
+            
+            with tab_add:
+                st.markdown("**Cadastrar Novo Produto**")
+                with st.form("novo_produto_form"):
+                    col_np1, col_np2 = st.columns(2)
+                    with col_np1:
+                        novo_codigo = st.text_input("Código*", placeholder="Ex: PROD001")
+                        novo_nome = st.text_input("Nome do Produto*", placeholder="Ex: Cabo HDMI 2m")
+                        nova_categoria = st.selectbox("Categoria", ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"])
+                    with col_np2:
+                        nova_unidade = st.selectbox("Unidade", ["UN", "PC", "KG", "M", "L", "CX", "PAR"])
+                        novo_preco = st.number_input("Preço Estimado (R$)", min_value=0.0, step=0.01, format="%.2f")
+                        novo_ativo = st.checkbox("Produto Ativo", value=True)
+                    
+                    if st.form_submit_button("💾 Salvar Produto"):
+                        if novo_codigo and novo_nome:
+                            # Verifica se código já existe
+                            codigo_existe = any(p.get('codigo') == novo_codigo for p in catalogo)
+                            if codigo_existe:
+                                st.error(f"❌ Código '{novo_codigo}' já existe!")
+                            else:
+                                novo_produto = {
+                                    "codigo": novo_codigo,
+                                    "nome": novo_nome,
+                                    "categoria": nova_categoria,
+                                    "unidade": nova_unidade,
+                                    "preco_estimado": novo_preco,
+                                    "ativo": novo_ativo,
+                                    "id": len(catalogo) + 1
+                                }
+                                
+                                # Salva no banco ou JSON
+                                if USE_DATABASE:
+                                    try:
+                                        db = get_database()
+                                        if db.db_available:
+                                            catalogo.append(novo_produto)
+                                            db.update_catalogo_produtos(catalogo)
+                                            st.success(f"✅ Produto '{novo_nome}' adicionado com sucesso!")
+                                            st.rerun()
+                                    except Exception as e:
+                                        st.error(f"❌ Erro ao salvar no banco: {e}")
+                                else:
+                                    catalogo.append(novo_produto)
+                                    data["configuracoes"]["catalogo_produtos"] = catalogo
+                                    save_data(data)
+                                    st.success(f"✅ Produto '{novo_nome}' adicionado com sucesso!")
+                                    st.rerun()
+                        else:
+                            st.error("❌ Preencha código e nome do produto!")
+            
+            with tab_edit:
+                st.markdown("**Editar Produto Existente**")
+                if catalogo:
+                    produto_para_editar = st.selectbox(
+                        "Selecione o produto para editar:",
+                        options=[f"{p.get('codigo', '')} - {p.get('nome', '')}" for p in catalogo],
+                        key="produto_editar"
+                    )
+                    
+                    if produto_para_editar:
+                        produto_selecionado_edit = next(p for p in catalogo if f"{p.get('codigo', '')} - {p.get('nome', '')}" == produto_para_editar)
+                        
+                        with st.form("editar_produto_form"):
+                            col_ep1, col_ep2 = st.columns(2)
+                            with col_ep1:
+                                edit_codigo = st.text_input("Código*", value=produto_selecionado_edit.get('codigo', ''))
+                                edit_nome = st.text_input("Nome do Produto*", value=produto_selecionado_edit.get('nome', ''))
+                                edit_categoria = st.selectbox("Categoria", 
+                                    ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"],
+                                    index=["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"].index(produto_selecionado_edit.get('categoria', 'Outro')))
+                            with col_ep2:
+                                edit_unidade = st.selectbox("Unidade", 
+                                    ["UN", "PC", "KG", "M", "L", "CX", "PAR"],
+                                    index=["UN", "PC", "KG", "M", "L", "CX", "PAR"].index(produto_selecionado_edit.get('unidade', 'UN')))
+                                edit_preco = st.number_input("Preço Estimado (R$)", 
+                                    value=float(produto_selecionado_edit.get('preco_estimado', 0)), 
+                                    min_value=0.0, step=0.01, format="%.2f")
+                                edit_ativo = st.checkbox("Produto Ativo", value=produto_selecionado_edit.get('ativo', True))
+                            
+                            if st.form_submit_button("💾 Salvar Alterações"):
+                                if edit_codigo and edit_nome:
+                                    # Atualiza o produto
+                                    for i, p in enumerate(catalogo):
+                                        if p.get('id') == produto_selecionado_edit.get('id'):
+                                            catalogo[i] = {
+                                                "codigo": edit_codigo,
+                                                "nome": edit_nome,
+                                                "categoria": edit_categoria,
+                                                "unidade": edit_unidade,
+                                                "preco_estimado": edit_preco,
+                                                "ativo": edit_ativo,
+                                                "id": produto_selecionado_edit.get('id')
+                                            }
+                                            break
+                                    
+                                    # Salva no banco ou JSON
+                                    if USE_DATABASE:
+                                        try:
+                                            db = get_database()
+                                            if db.db_available:
+                                                db.update_catalogo_produtos(catalogo)
+                                                st.success(f"✅ Produto '{edit_nome}' atualizado com sucesso!")
+                                                st.rerun()
+                                        except Exception as e:
+                                            st.error(f"❌ Erro ao salvar no banco: {e}")
+                                    else:
+                                        data["configuracoes"]["catalogo_produtos"] = catalogo
+                                        save_data(data)
+                                        st.success(f"✅ Produto '{edit_nome}' atualizado com sucesso!")
+                                        st.rerun()
+                                else:
+                                    st.error("❌ Preencha código e nome do produto!")
+                else:
+                    st.info("📦 Nenhum produto cadastrado para editar.")
+            
+            with tab_delete:
+                st.markdown("**Excluir Produto**")
+                if catalogo:
+                    produto_para_excluir = st.selectbox(
+                        "Selecione o produto para excluir:",
+                        options=[f"{p.get('codigo', '')} - {p.get('nome', '')}" for p in catalogo],
+                        key="produto_excluir"
+                    )
+                    
+                    if produto_para_excluir:
+                        produto_selecionado_del = next(p for p in catalogo if f"{p.get('codigo', '')} - {p.get('nome', '')}" == produto_para_excluir)
+                        
+                        st.warning(f"⚠️ **Atenção:** Você está prestes a excluir o produto:")
+                        st.info(f"**Código:** {produto_selecionado_del.get('codigo', '')}\n**Nome:** {produto_selecionado_del.get('nome', '')}")
+                        
+                        col_del1, col_del2 = st.columns(2)
+                        with col_del1:
+                            if st.button("🗑️ Confirmar Exclusão", type="primary"):
+                                # Remove o produto
+                                catalogo = [p for p in catalogo if p.get('id') != produto_selecionado_del.get('id')]
+                                
+                                # Salva no banco ou JSON
+                                if USE_DATABASE:
+                                    try:
+                                        db = get_database()
+                                        if db.db_available:
+                                            db.update_catalogo_produtos(catalogo)
+                                            st.success(f"✅ Produto '{produto_selecionado_del.get('nome', '')}' excluído com sucesso!")
+                                            st.rerun()
+                                    except Exception as e:
+                                        st.error(f"❌ Erro ao salvar no banco: {e}")
+                                else:
+                                    data["configuracoes"]["catalogo_produtos"] = catalogo
+                                    save_data(data)
+                                    st.success(f"✅ Produto '{produto_selecionado_del.get('nome', '')}' excluído com sucesso!")
+                                    st.rerun()
+                        with col_del2:
+                            if st.button("❌ Cancelar"):
+                                st.rerun()
+                else:
+                    st.info("📦 Nenhum produto cadastrado para excluir.")
+        
+        # Interface para adicionar novo item
+        st.markdown("**➕ Adicionar Item à Solicitação**")
+        col_add1, col_add2, col_add3, col_add4 = st.columns([3, 2, 1, 1])
+        
+        with col_add1:
+            # Cria opções com código e descrição
+            opcoes_produtos = []
+            produtos_map = {}
+            for produto in catalogo:
+                if produto.get('ativo', True):
+                    codigo = produto.get('codigo', '')
+                    nome = produto.get('nome', '')
+                    opcao = f"{codigo} - {nome}"
+                    opcoes_produtos.append(opcao)
+                    produtos_map[opcao] = produto
+            
+            produto_selecionado = st.selectbox(
+                "Produto", 
+                options=[""] + opcoes_produtos,
+                key="novo_produto",
+                help="Selecione um produto do catálogo"
+            )
+        
+        with col_add2:
+            quantidade = st.number_input(
+                "Quantidade", 
+                min_value=1, 
+                value=1, 
+                step=1,
+                key="nova_quantidade",
+                help="Quantidade desejada"
+            )
+        
+        with col_add3:
+            if produto_selecionado:
+                produto_info = produtos_map.get(produto_selecionado, {})
+                unidade = produto_info.get('unidade', 'UN')
+                st.text_input("Unidade", value=unidade, disabled=True, key="nova_unidade")
+            else:
+                st.text_input("Unidade", value="", disabled=True, key="nova_unidade_empty")
+        
+        with col_add4:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("➕ Adicionar", key="btn_adicionar_item", help="Adicionar item à lista"):
+                if produto_selecionado and quantidade > 0:
+                    produto_info = produtos_map[produto_selecionado]
+                    novo_item = {
+                        "codigo": produto_info.get('codigo', ''),
+                        "nome": produto_info.get('nome', ''),
+                        "quantidade": quantidade,
+                        "unidade": produto_info.get('unidade', 'UN'),
+                        "categoria": produto_info.get('categoria', '')
+                    }
+                    st.session_state.itens_solicitacao.append(novo_item)
+                    # Limpa os campos usando del para evitar erro de modificação
+                    if 'novo_produto' in st.session_state:
+                        del st.session_state.novo_produto
+                    if 'nova_quantidade' in st.session_state:
+                        del st.session_state.nova_quantidade
+                    st.rerun()
+                else:
+                    st.error("Selecione um produto e quantidade válida")
+        
+        # Exibe lista de itens adicionados
+        if st.session_state.itens_solicitacao:
+            st.markdown("**📋 Itens Adicionados**")
+            
+            # Cria DataFrame para exibição
+            itens_display = []
+            for i, item in enumerate(st.session_state.itens_solicitacao):
+                itens_display.append({
+                    "#": i + 1,
+                    "Código": item['codigo'],
+                    "Produto": item['nome'],
+                    "Qtd": item['quantidade'],
+                    "Unidade": item['unidade'],
+                    "Categoria": item.get('categoria', '')
+                })
+            
+            df_itens = pd.DataFrame(itens_display)
+            
+            # Exibe tabela com opção de edição
+            try:
+                if hasattr(st, "column_config"):
+                    col_config = {
+                        "#": st.column_config.NumberColumn("#", width="small"),
+                        "Código": st.column_config.TextColumn("Código", width="small"),
+                        "Produto": st.column_config.TextColumn("Produto", width="large"),
+                        "Qtd": st.column_config.NumberColumn("Qtd", min_value=1, step=1, width="small"),
+                        "Unidade": st.column_config.TextColumn("Unidade", width="small"),
+                        "Categoria": st.column_config.TextColumn("Categoria", width="medium")
+                    }
+                    
+                    itens_editados_df = st.data_editor(
+                        df_itens,
+                        column_config=col_config,
+                        use_container_width=True,
+                        hide_index=True,
+                        key="editor_itens_lista"
+                    )
+                    
+                    # Atualiza a lista na sessão com as edições
+                    for i, row in itens_editados_df.iterrows():
+                        if i < len(st.session_state.itens_solicitacao):
+                            st.session_state.itens_solicitacao[i]['quantidade'] = row['Qtd']
+                else:
+                    st.dataframe(df_itens, use_container_width=True)
+            except Exception:
+                st.dataframe(df_itens, use_container_width=True)
+            
+            # Botões de ação
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
+            with col_btn1:
+                if st.button("🗑️ Limpar Lista", key="btn_limpar_itens", help="Remove todos os itens"):
+                    st.session_state.itens_solicitacao = []
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("❌ Remover Último", key="btn_remover_ultimo", help="Remove o último item adicionado"):
+                    if st.session_state.itens_solicitacao:
+                        st.session_state.itens_solicitacao.pop()
+                        st.rerun()
+            
+            with col_btn3:
+                st.info(f"📊 **Total de itens:** {len(st.session_state.itens_solicitacao)}")
+        else:
+            st.info("➕ Use o formulário acima para adicionar itens à solicitação")
+    
+    st.markdown(get_form_section_end(), unsafe_allow_html=True)
+    
+    # Formulário principal para o restante das seções
+    with st.form("nova_solicitacao_final"):
+        # Seção 3: Resumo dos Itens Selecionados
         st.markdown(get_form_section_start(), unsafe_allow_html=True)
-        st.markdown(get_form_section_title('👤 Dados do Solicitante'), unsafe_allow_html=True)
+        st.markdown(get_form_section_title('🧾 Resumo dos Itens Selecionados'), unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
-        with col1:
-            solicitante = st.text_input("Solicitante (Nome e Sobrenome)*", 
-                                      help="Campo obrigatório conforme planilha",
-                                      placeholder="Digite o nome completo do solicitante")
-            departamento = st.selectbox("Departamento*", DEPARTAMENTOS, help="Departamento do solicitante")
-        
-        with col2:
-            prioridade = st.selectbox("Prioridade*", PRIORIDADES, help="Define o SLA automaticamente")
-            sla_dias = obter_sla_por_prioridade(prioridade)
-            st.info(f"📅 **SLA:** {sla_dias} dias úteis para prioridade '{prioridade}'")
+        itens_struct = st.session_state.get('itens_solicitacao', [])
+        if itens_struct:
+            resumo_itens = []
+            for i, item in enumerate(itens_struct):
+                resumo_itens.append({
+                    "#": i + 1,
+                    "Código": item['codigo'],
+                    "Produto": item['nome'],
+                    "Qtd": item['quantidade'],
+                    "Unidade": item['unidade']
+                })
+            
+            df_resumo = pd.DataFrame(resumo_itens)
+            st.dataframe(df_resumo, use_container_width=True, hide_index=True)
+            st.success(f"✅ {len(itens_struct)} item(ns) selecionado(s) para a solicitação")
+        else:
+            st.warning("⚠️ Nenhum item foi adicionado à solicitação. Use a seção acima para adicionar itens.")
         
         st.markdown(get_form_section_end(), unsafe_allow_html=True)
         
-        # Seção 2: Dados da Solicitação
+        # Seção 3: Dados da Solicitação
         st.markdown(get_form_section_start(), unsafe_allow_html=True)
         st.markdown(get_form_section_title('📋 Dados da Solicitação'), unsafe_allow_html=True)
         
@@ -124,43 +476,10 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         local_aplicacao = st.text_input("Local de Aplicação*",
                                        help="Onde o material será aplicado",
                                        placeholder="Ex: Sala de Servidores, Linha de Produção 1...")
-
-        # Itens da Solicitação
-        st.markdown(get_form_section_title('🧾 Itens da Solicitação'), unsafe_allow_html=True)
-        catalogo = data.get("configuracoes", {}).get("catalogo_produtos", [])
-        
-        if not catalogo:
-            st.warning("Catálogo de produtos vazio. Configure em '📦 Catálogo de Produtos'.")
-            itens_editados = pd.DataFrame([{"codigo": "", "quantidade": 1}])
-        else:
-            itens_df_init = pd.DataFrame([{"codigo": "", "quantidade": 1}])
-            try:
-                if hasattr(st, "column_config"):
-                    col_cfg = {
-                        "codigo": st.column_config.SelectboxColumn(
-                            "Código do Produto",
-                            options=[c.get("codigo") for c in catalogo if c.get("ativo", True)],
-                            help="Selecione um código válido do catálogo"
-                        ),
-                        "quantidade": st.column_config.NumberColumn(
-                            "Quantidade", min_value=1, step=1, help="Informe a quantidade desejada"
-                        )
-                    }
-                    itens_editados = render_data_editor(itens_df_init, key="itens_editor",
-                                                       use_container_width=True, num_rows="dynamic",
-                                                       column_config=col_cfg, hide_index=True)
-                else:
-                    itens_editados = render_data_editor(itens_df_init, key="itens_editor",
-                                                       use_container_width=True, num_rows="dynamic")
-            except Exception:
-                itens_editados = render_data_editor(itens_df_init, key="itens_editor",
-                                                   use_container_width=True, num_rows="dynamic")
-            
-            st.info("Adicione linhas e selecione o código do produto e a quantidade. Linhas vazias serão ignoradas.")
         
         st.markdown(get_form_section_end(), unsafe_allow_html=True)
         
-        # Seção 3: Anexos
+        # Seção 4: Anexos
         st.markdown(get_form_section_start(), unsafe_allow_html=True)
         st.markdown(get_form_section_title('📎 Anexos da Solicitação'), unsafe_allow_html=True)
         
@@ -173,7 +492,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         
         st.markdown(get_form_section_end(), unsafe_allow_html=True)
         
-        # Seção 4: Informações Automáticas
+        # Seção 5: Informações Automáticas
         st.markdown(get_form_section_start(), unsafe_allow_html=True)
         st.markdown(get_form_section_title('⚙️ Informações de Controle'), unsafe_allow_html=True)
         st.markdown('<p style="color: #64748b; font-style: italic; margin-bottom: 1rem;">Os campos abaixo são preenchidos automaticamente pelo sistema</p>', unsafe_allow_html=True)
@@ -185,7 +504,8 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         with col6:
             st.text_input("Data/Hora de Criação", 
                          value=datetime.datetime.now().strftime('%d/%m/%Y às %H:%M:%S'), disabled=True)
-            st.text_input("SLA Aplicado", value=f"{sla_dias} dias úteis", disabled=True)
+            # Campo removido conforme solicitado pelo usuário
+            st.text_input("Prioridade Selecionada", value="Será definida automaticamente", disabled=True)
         
         st.markdown(get_form_section_end(), unsafe_allow_html=True)
         
@@ -205,30 +525,8 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             st.warning("⚠️ Solicitação já foi enviada. Aguarde o processamento.")
             return
         
-        # Prepara itens estruturados
-        itens_struct = []
-        try:
-            catalog_map = {c.get("codigo"): c for c in data.get("configuracoes", {}).get("catalogo_produtos", [])}
-            if 'itens_editados' in locals() and isinstance(itens_editados, pd.DataFrame):
-                for r in itens_editados.to_dict(orient="records"):
-                    cod = (r.get("codigo") or "").strip()
-                    if not cod:
-                        continue
-                    prod = catalog_map.get(cod)
-                    qtd = r.get("quantidade")
-                    try:
-                        qtd_val = int(qtd) if float(qtd) == int(qtd) else float(qtd)
-                    except Exception:
-                        qtd_val = None
-                    if prod and qtd_val and qtd_val > 0:
-                        itens_struct.append({
-                            "codigo": cod,
-                            "nome": prod.get("nome"),
-                            "unidade": prod.get("unidade"),
-                            "quantidade": qtd_val
-                        })
-        except Exception:
-            itens_struct = []
+        # Obtém os itens da sessão
+        itens_struct = st.session_state.get('itens_solicitacao', [])
 
         if solicitante and departamento and descricao and local_aplicacao and len(itens_struct) > 0:
             # Gera números automáticos
@@ -319,7 +617,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             if st.button("🆕 Criar Nova Solicitação", type="primary", use_container_width=True):
                 # Limpa o estado do formulário
                 for key in list(st.session_state.keys()):
-                    if key.startswith('nova_solicitacao') or key in ['form_submitted', 'itens_editor']:
+                    if key.startswith('nova_solicitacao') or key in ['form_submitted', 'itens_editor', 'itens_solicitacao', 'novo_produto', 'nova_quantidade']:
                         del st.session_state[key]
                 st.rerun()
             
