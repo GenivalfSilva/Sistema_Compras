@@ -20,8 +20,8 @@ def reset_passwords():
     
     print("Iniciando reset de senhas...")
     
-    # Conecta ao banco
-    db = DatabaseManager()
+    # Conecta ao banco (usar cloud DB)
+    db = DatabaseManager(use_cloud_db=True)
     
     if not db.db_available:
         print("❌ Erro: Banco de dados não disponível")

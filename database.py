@@ -1003,9 +1003,21 @@ class DatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = '''INSERT OR REPLACE INTO sessoes (id, username, expires_at) 
-                    VALUES (?, ?, ?)'''
-            cursor.execute(self._sql(sql), (session_id, username, expires_at))
+            
+            if self.db_type == 'postgres':
+                # PostgreSQL syntax
+                sql = '''INSERT INTO sessoes (id, username, expires_at) 
+                        VALUES (%s, %s, %s)
+                        ON CONFLICT (id) DO UPDATE SET 
+                        username = EXCLUDED.username,
+                        expires_at = EXCLUDED.expires_at'''
+                cursor.execute(sql, (session_id, username, expires_at))
+            else:
+                # SQLite syntax
+                sql = '''INSERT OR REPLACE INTO sessoes (id, username, expires_at) 
+                        VALUES (?, ?, ?)'''
+                cursor.execute(sql, (session_id, username, expires_at))
+            
             self.conn.commit()
             return True
         except Exception as e:
@@ -1033,6 +1045,57 @@ class DatabaseManager:
             except:
                 pass
             print(f"Erro ao buscar sessão: {e}")
+            return {}
+    
+    def create_session(self, username: str, session_id: str) -> bool:
+        """Cria nova sessão"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            import datetime
+            # Sessão expira em 24 horas
+            expires_at = datetime.datetime.now() + datetime.timedelta(hours=24)
+            return self.add_session(session_id, username, expires_at)
+        except Exception as e:
+            print(f"Erro ao criar sessão: {e}")
+            return False
+    
+    def validate_session(self, session_id: str) -> str:
+        """Valida sessão e retorna username se válida"""
+        if not self.db_available or not self.conn:
+            return ""
+            
+        try:
+            session = self.get_session(session_id)
+            if session:
+                import datetime
+                expires_at = session.get('expires_at')
+                if expires_at:
+                    # Converte string para datetime se necessário
+                    if isinstance(expires_at, str):
+                        expires_at = datetime.datetime.fromisoformat(expires_at)
+                    
+                    if datetime.datetime.now() < expires_at:
+                        return session.get('username', '')
+            return ""
+        except Exception as e:
+            print(f"Erro ao validar sessão: {e}")
+            return ""
+    
+    def authenticate_user_by_username(self, username: str) -> Dict:
+        """Retorna dados do usuário pelo username (sem validar senha)"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM usuarios WHERE username = ?'
+            cursor.execute(self._sql(sql), (username,))
+            user = cursor.fetchone()
+            return dict(user) if user else {}
+        except Exception as e:
+            print(f"Erro ao buscar usuário: {e}")
             return {}
 
     def close(self):
