@@ -610,7 +610,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             st.markdown(f"**🧾 Itens:** {len(itens_struct)} item(ns)")
             
             # Próximos passos
-            proximos_passos = '<h4 style="color: #1e40af; margin: 0 0 1rem 0;">🔄 Próximos Passos</h4>**1.** A solicitação será analisada pela área de **Suprimentos**<br>**2.** Use a opção **\'🔄 Mover para Próxima Etapa\'** para avançar o processo<br>**3.** Acompanhe o progresso no **Dashboard SLA** ou **Histórico por Etapa**'
+            proximos_passos = '<h4 style="color: #1e40af; margin: 0 0 1rem 0;">🔄 Próximos Passos</h4><strong>1.</strong> A solicitação será analisada pela área de <strong>Suprimentos</strong><br><strong>2.</strong> Use a opção <strong>\'🔄 Mover para Próxima Etapa\'</strong> para avançar o processo<br><strong>3.</strong> Acompanhe o progresso no <strong>Dashboard SLA</strong> ou <strong>Histórico por Etapa</strong>'
             st.markdown(get_info_box_html(proximos_passos), unsafe_allow_html=True)
             
             # Botão para criar nova solicitação (limpa o formulário)
