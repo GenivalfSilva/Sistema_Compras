@@ -512,6 +512,133 @@ class DatabaseManager:
             print(f"Erro ao adicionar usuário: {e}")
             return False
     
+    def authenticate_user(self, username: str, password: str) -> Dict:
+        """Autentica usuário e retorna dados se válido"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM usuarios WHERE username = ?'
+            cursor.execute(self._sql(sql), (username,))
+            user = cursor.fetchone()
+            
+            if user:
+                user_dict = dict(user)
+                # Verifica senha
+                senha_hash = hashlib.sha256(password.encode()).hexdigest()
+                if user_dict['senha_hash'] == senha_hash:
+                    return user_dict
+            return {}
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao autenticar usuário: {e}")
+            return {}
+    
+    def get_user_by_username(self, username: str) -> Dict:
+        """Busca usuário por username"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM usuarios WHERE username = ?'
+            cursor.execute(self._sql(sql), (username,))
+            user = cursor.fetchone()
+            return dict(user) if user else {}
+        except Exception as e:
+            # Rollback transaction on error to prevent cascade failures
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar usuário: {e}")
+            return {}
+    
+    def get_all_users(self) -> List[Dict]:
+        """Retorna todos os usuários"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT * FROM usuarios ORDER BY username')
+            return [dict(row) for row in cursor.fetchall()]
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar usuários: {e}")
+            return []
+    
+    def update_user_password(self, username: str, nova_senha: str) -> bool:
+        """Atualiza senha do usuário"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            senha_hash = hashlib.sha256(nova_senha.encode()).hexdigest()
+            sql = 'UPDATE usuarios SET senha_hash = ? WHERE username = ?'
+            cursor.execute(self._sql(sql), (senha_hash, username))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao atualizar senha: {e}")
+            return False
+    
+    def get_config(self, key: str, default: str = None) -> str:
+        """Busca configuração"""
+        if not self.db_available or not self.conn:
+            return default
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT valor FROM configuracoes WHERE chave = ?'
+            cursor.execute(self._sql(sql), (key,))
+            result = cursor.fetchone()
+            return result[0] if result else default
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar configuração: {e}")
+            return default
+    
+    def set_config(self, key: str, value: str) -> bool:
+        """Define configuração"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            # Upsert: INSERT OR REPLACE para SQLite, ON CONFLICT para PostgreSQL
+            if self.db_type == 'sqlite':
+                sql = 'INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES (?, ?)'
+            else:
+                sql = '''INSERT INTO configuracoes (chave, valor) VALUES (?, ?) 
+                        ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor'''
+            cursor.execute(self._sql(sql), (key, value))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao definir configuração: {e}")
+            return False
+    
     def add_catalogo_produto(self, codigo: str, nome: str, categoria: str, unidade: str, ativo: bool = True) -> bool:
         """Adiciona produto ao catálogo"""
         if not self.db_available or not self.conn:
@@ -655,6 +782,45 @@ class DatabaseManager:
                 pass
             print(f"Erro ao deletar sessão: {e}")
             return False
+    
+    def add_session(self, session_id: str, username: str, expires_at) -> bool:
+        """Adiciona sessão"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = '''INSERT OR REPLACE INTO sessoes (id, username, expires_at) 
+                    VALUES (?, ?, ?)'''
+            cursor.execute(self._sql(sql), (session_id, username, expires_at))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao adicionar sessão: {e}")
+            return False
+    
+    def get_session(self, session_id: str) -> Dict:
+        """Busca sessão"""
+        if not self.db_available or not self.conn:
+            return {}
+            
+        try:
+            cursor = self.conn.cursor()
+            sql = 'SELECT * FROM sessoes WHERE id = ?'
+            cursor.execute(self._sql(sql), (session_id,))
+            result = cursor.fetchone()
+            return dict(result) if result else {}
+        except Exception as e:
+            try:
+                self.conn.rollback()
+            except:
+                pass
+            print(f"Erro ao buscar sessão: {e}")
+            return {}
 
     def close(self):
         """Fecha conexão"""
