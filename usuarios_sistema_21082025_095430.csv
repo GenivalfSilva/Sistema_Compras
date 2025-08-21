@@ -1,0 +1,6 @@
+id;username;nome;perfil;departamento;senha_hash;created_at
+3;Diretoria;Diretoria;Gerência&Diretoria;Outro;ebdf496f67651cddf6aaa1f0b130f1b99ce9e2e93dc2503d926edcff15aee668;18/08/2025 14:36
+5;Fabio.Ramos;Fabio Ramos;Gerência&Diretoria;Manutenção;5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5;20/08/2025 13:13
+4;Genival.Silva;Genival Silva;Suprimentos;Manutenção;ebdf496f67651cddf6aaa1f0b130f1b99ce9e2e93dc2503d926edcff15aee668;18/08/2025 14:36
+2;Leonardo.Fragoso;Leonardo Fragoso;Solicitante;TI;ebdf496f67651cddf6aaa1f0b130f1b99ce9e2e93dc2503d926edcff15aee668;18/08/2025 14:35
+1;admin;Administrador;Admin;TI;240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9;18/08/2025 14:35

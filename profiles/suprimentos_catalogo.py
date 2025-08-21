@@ -379,13 +379,31 @@ def catalogo_produtos(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                         if col in df_export.columns:
                             df_export[col] = df_export[col].apply(lambda x: f"R$ {x:,.2f}".replace(',', '_').replace('.', ',').replace('_', '.') if pd.notnull(x) and x != '' else 'N/A')
                     
-                    csv_data = df_export.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
-                    st.download_button(
-                        label="⬇️ Download CSV",
-                        data=csv_data,
-                        file_name=f"catalogo_produtos_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
-                        mime="text/csv"
-                    )
+                    # Normalizar caracteres especiais para evitar problemas de codificação
+                    import unicodedata
+                    for col in df_export.select_dtypes(include=['object']).columns:
+                        df_export[col] = df_export[col].astype(str).apply(
+                            lambda x: unicodedata.normalize('NFC', x) if x != 'nan' else x
+                        )
+                    
+                    # Exportar como Excel (.xlsx) para melhor compatibilidade com caracteres especiais
+                    try:
+                        from io import BytesIO
+                        buffer = BytesIO()
+                        df_export.to_excel(buffer, index=False, engine='openpyxl')
+                        excel_data = buffer.getvalue()
+                        
+                        st.download_button(
+                            label="⬇️ Download Excel",
+                            data=excel_data,
+                            file_name=f"catalogo_produtos_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx",
+                            help="Arquivo Excel com caracteres especiais preservados",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    except ImportError:
+                        st.error("📦 Instale a dependência 'openpyxl' para exportar Excel: pip install openpyxl")
+                    except Exception as e:
+                        st.error(f"❌ Erro ao gerar Excel: {str(e)}")
                 else:
                     st.warning("Nenhum produto para exportar.")
         

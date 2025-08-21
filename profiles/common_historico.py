@@ -102,17 +102,12 @@ def historico_por_etapa(data: Dict, usuario: Dict):
         # Criar cópia do DataFrame para formatação de exportação
         df_export = df_historico.copy()
         
-        # Garantir que todas as colunas de data estejam formatadas corretamente para PT-BR
-        date_columns = ['Data da Solicitação', 'Data da Requisição', 'Data do Pedido de Compra', 'Data Entrega']
-        for col in date_columns:
-            if col in df_export.columns:
-                # Manter formatação PT-BR já aplicada
-                pass
-        
-        # Formatação de valores monetários para PT-BR
-        if 'Valor Final' in df_export.columns:
-            # Já está formatado corretamente no DataFrame
-            pass
+        # Normalizar caracteres especiais para evitar problemas de codificação
+        import unicodedata
+        for col in df_export.select_dtypes(include=['object']).columns:
+            df_export[col] = df_export[col].astype(str).apply(
+                lambda x: unicodedata.normalize('NFC', x) if x != 'nan' else x
+            )
             
         try:
             output = io.BytesIO()
@@ -127,13 +122,5 @@ def historico_por_etapa(data: Dict, usuario: Dict):
             )
         except Exception:
             st.caption("Não foi possível gerar Excel (.xlsx). Verifique a dependência 'openpyxl'.")
-
-        csv = df_export.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv,
-            file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
-            mime="text/csv"
-        )
     else:
         st.info("📋 Nenhuma solicitação encontrada com os filtros aplicados.")

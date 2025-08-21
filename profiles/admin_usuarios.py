@@ -213,14 +213,31 @@ def gerenciar_usuarios(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 if 'created_at' in df_usuarios.columns:
                     df_usuarios['created_at'] = pd.to_datetime(df_usuarios['created_at'], errors='coerce').dt.strftime('%d/%m/%Y %H:%M:%S')
                 
-                # Exportar com formatação PT-BR
-                csv_data = df_usuarios.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
-                st.download_button(
-                    label="⬇️ Download CSV",
-                    data=csv_data,
-                    file_name=f"usuarios_sistema_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
-                    mime="text/csv"
-                )
+                # Normalizar caracteres especiais para evitar problemas de codificação
+                import unicodedata
+                for col in df_usuarios.select_dtypes(include=['object']).columns:
+                    df_usuarios[col] = df_usuarios[col].astype(str).apply(
+                        lambda x: unicodedata.normalize('NFC', x) if x != 'nan' else x
+                    )
+                
+                # Exportar como Excel (.xlsx) para melhor compatibilidade com caracteres especiais
+                try:
+                    from io import BytesIO
+                    buffer = BytesIO()
+                    df_usuarios.to_excel(buffer, index=False, engine='openpyxl')
+                    excel_data = buffer.getvalue()
+                    
+                    st.download_button(
+                        label="⬇️ Download Excel",
+                        data=excel_data,
+                        file_name=f"usuarios_sistema_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx",
+                        help="Arquivo Excel com caracteres especiais preservados",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                except ImportError:
+                    st.error("📦 Instale a dependência 'openpyxl' para exportar Excel: pip install openpyxl")
+                except Exception as e:
+                    st.error(f"❌ Erro ao gerar Excel: {str(e)}")
             else:
                 st.warning("Nenhum usuário para exportar.")
     
