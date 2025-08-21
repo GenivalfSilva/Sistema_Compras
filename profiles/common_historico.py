@@ -99,25 +99,40 @@ def historico_por_etapa(data: Dict, usuario: Dict):
         st.dataframe(df_historico, use_container_width=True)
         
         # Botões para download
+        # Criar cópia do DataFrame para formatação de exportação
+        df_export = df_historico.copy()
+        
+        # Garantir que todas as colunas de data estejam formatadas corretamente para PT-BR
+        date_columns = ['Data da Solicitação', 'Data da Requisição', 'Data do Pedido de Compra', 'Data Entrega']
+        for col in date_columns:
+            if col in df_export.columns:
+                # Manter formatação PT-BR já aplicada
+                pass
+        
+        # Formatação de valores monetários para PT-BR
+        if 'Valor Final' in df_export.columns:
+            # Já está formatado corretamente no DataFrame
+            pass
+            
         try:
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df_historico.to_excel(writer, index=False, sheet_name='Historico')
+                df_export.to_excel(writer, index=False, sheet_name='Historico')
             xlsx_data = output.getvalue()
             st.download_button(
                 label="📥 Download Excel (.xlsx)",
                 data=xlsx_data,
-                file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+                file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         except Exception:
             st.caption("Não foi possível gerar Excel (.xlsx). Verifique a dependência 'openpyxl'.")
 
-        csv = df_historico.to_csv(index=False, encoding='utf-8-sig')
+        csv = df_export.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
         st.download_button(
             label="📥 Download CSV",
             data=csv,
-            file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            file_name=f"historico_compras_sla_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
             mime="text/csv"
         )
     else:

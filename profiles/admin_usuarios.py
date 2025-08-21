@@ -5,6 +5,7 @@ Contém: Criar usuários, listar usuários, resetar senhas, gerenciar perfis
 
 import streamlit as st
 import pandas as pd
+import datetime
 from typing import Dict
 
 def gerenciar_usuarios(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
@@ -205,11 +206,19 @@ def gerenciar_usuarios(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     with col1:
         if st.button("📥 Exportar Lista de Usuários"):
             if usuarios:
-                csv_data = pd.DataFrame(usuarios).to_csv(index=False)
+                # Criar DataFrame e formatar datas para PT-BR
+                df_usuarios = pd.DataFrame(usuarios)
+                
+                # Formatar coluna created_at se existir
+                if 'created_at' in df_usuarios.columns:
+                    df_usuarios['created_at'] = pd.to_datetime(df_usuarios['created_at'], errors='coerce').dt.strftime('%d/%m/%Y %H:%M:%S')
+                
+                # Exportar com formatação PT-BR
+                csv_data = df_usuarios.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
                 st.download_button(
                     label="⬇️ Download CSV",
                     data=csv_data,
-                    file_name="usuarios_sistema.csv",
+                    file_name=f"usuarios_sistema_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
                     mime="text/csv"
                 )
             else:

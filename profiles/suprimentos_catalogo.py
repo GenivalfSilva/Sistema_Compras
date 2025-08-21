@@ -5,6 +5,7 @@ Contém: Visualizar catálogo, adicionar produtos, editar produtos, gerenciar ca
 
 import streamlit as st
 import pandas as pd
+import datetime
 from typing import Dict
 
 def catalogo_produtos(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
@@ -365,11 +366,24 @@ def catalogo_produtos(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             if st.button("📥 Exportar Catálogo"):
                 if catalogo:
                     df_export = pd.DataFrame(catalogo)
-                    csv_data = df_export.to_csv(index=False)
+                    
+                    # Formatar datas se existirem
+                    date_columns = ['data_criacao', 'data_atualizacao', 'created_at', 'updated_at']
+                    for col in date_columns:
+                        if col in df_export.columns:
+                            df_export[col] = pd.to_datetime(df_export[col], errors='coerce').dt.strftime('%d/%m/%Y %H:%M:%S')
+                    
+                    # Formatar valores monetários para PT-BR
+                    money_columns = ['preco', 'valor', 'preco_unitario', 'custo']
+                    for col in money_columns:
+                        if col in df_export.columns:
+                            df_export[col] = df_export[col].apply(lambda x: f"R$ {x:,.2f}".replace(',', '_').replace('.', ',').replace('_', '.') if pd.notnull(x) and x != '' else 'N/A')
+                    
+                    csv_data = df_export.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',')
                     st.download_button(
                         label="⬇️ Download CSV",
                         data=csv_data,
-                        file_name="catalogo_produtos.csv",
+                        file_name=f"catalogo_produtos_{datetime.datetime.now().strftime('%d%m%Y_%H%M%S')}.csv",
                         mime="text/csv"
                     )
                 else:
