@@ -10,51 +10,19 @@ import hashlib
 
 import io
 from style import get_custom_css, get_sidebar_css, get_stats_card_html, get_section_header_html, get_info_box_html, get_form_container_start, get_form_container_end, get_form_section_start, get_form_section_end, get_form_section_title
-# Detecta ambiente cloud
-IS_CLOUD = os.path.exists('/mount/src') or 'STREAMLIT_CLOUD' in os.environ
 
-# Decide uso de banco: utilizar DB no cloud se houver credenciais
-def _has_cloud_db_credentials() -> bool:
-    try:
-        has_secrets = hasattr(st, 'secrets') and (
-            ("postgres" in st.secrets) or
-            ("database" in st.secrets) or
-            ("postgres_url" in st.secrets) or
-            ("database_url" in st.secrets)
-        )
-        return has_secrets or bool(os.getenv("DATABASE_URL"))
-    except Exception:
-        return False
-
-# Força uso do Railway PostgreSQL sempre que disponível
-USE_DATABASE = False
+# Configuração para PostgreSQL local na EC2
+USE_DATABASE = True
 try:
-    # Verifica se Railway está configurado
-    import os
-    railway_available = os.path.exists('secrets_railway.toml')
-    
-    if railway_available or (IS_CLOUD and _has_cloud_db_credentials()) or (not IS_CLOUD):
-        from database import get_database
-        from session_manager import get_session_manager
-        USE_DATABASE = True
-        print("✅ Usando Railway PostgreSQL para todas as operações")
+    from database_local import get_local_database
+    from session_manager import get_session_manager
+    print("✅ Usando PostgreSQL local na EC2")
 except Exception as e:
     USE_DATABASE = False
-    print(f"⚠️ Fallback para sistema simples: {e}")
+    print(f"❌ Erro ao conectar PostgreSQL local: {e}")
+    st.error("❌ Erro na conexão com banco de dados. Verifique a configuração do PostgreSQL.")
 
-if not USE_DATABASE:
-    # Fallback para autenticação simples em memória
-    from simple_session import simple_login, ensure_session_persistence, simple_logout
-
-# Sistema robusto de persistência para todos os ambientes
-from persistent_session import get_persistent_session, ensure_robust_session_persistence
-
-# Configuração da página
-st.set_page_config(
-    page_title="Sistema de Gestão de Compras - SLA",
-    page_icon="📋",
-    layout="wide"
-)
+# Configuração da página será feita na função main
 
 # Arquivo para armazenar os dados
 DATA_FILE = "compras_sla_data.json"
@@ -128,10 +96,10 @@ ALLOWED_FILE_TYPES = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"]
 UPLOAD_ROOT_DEFAULT = "uploads"
 
 def load_data() -> Dict:
-    """Carrega os dados do banco de dados ou arquivo JSON (fallback)"""
+    """Carrega os dados do banco PostgreSQL local"""
     if USE_DATABASE:
         try:
-            db = get_database()
+            db = get_local_database()
             if db.db_available:
                 # Carrega dados do banco
                 solicitacoes = db.get_all_solicitacoes()
@@ -141,11 +109,7 @@ def load_data() -> Dict:
                 if not catalogo_produtos:
                     # Inicializa catálogo padrão se vazio
                     for produto in get_default_product_catalog():
-                        db.add_catalogo_produto(
-                            produto['codigo'], produto['nome'], 
-                            produto['categoria'], produto['unidade'], 
-                            produto['ativo']
-                        )
+                        db.update_catalogo_produtos([produto])
                     catalogo_produtos = db.get_catalogo_produtos()
                 
                 # Busca próximos números
@@ -155,7 +119,7 @@ def load_data() -> Dict:
                 # Monta estrutura compatível
                 data = {
                     "solicitacoes": solicitacoes,
-                    "movimentacoes": [],  # Será implementado depois
+                    "movimentacoes": [],
                     "configuracoes": {
                         "sla_por_departamento": {},
                         "proximo_numero_solicitacao": proximo_sol,
@@ -167,19 +131,18 @@ def load_data() -> Dict:
                         "suprimentos_anexo_obrigatorio": db.get_config('suprimentos_anexo_obrigatorio', 'True') == 'True',
                         "catalogo_produtos": catalogo_produtos
                     },
-                    "notificacoes": db.get_notificacoes(),
-                    "usuarios": []  # Usuários já estão no banco
+                    "notificacoes": [],
+                    "usuarios": []
                 }
                 return data
         except Exception as e:
             print(f"Erro ao carregar dados do banco: {e}")
     
-    # Fallback para JSON
+    # Fallback para JSON se banco não disponível
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # Migração/normalização de dados antigos
                 data = migrate_data(data)
                 return data
         except:
@@ -207,10 +170,10 @@ def init_empty_data() -> Dict:
     }
 
 def save_data(data: Dict):
-    """Salva os dados no banco de dados ou arquivo JSON (fallback)"""
+    """Salva os dados no banco PostgreSQL local ou arquivo JSON (fallback)"""
     if USE_DATABASE:
         try:
-            db = get_database()
+            db = get_local_database()
             if db.db_available:
                 # Salva configurações no banco
                 config = data.get("configuracoes", {})
@@ -327,21 +290,8 @@ def get_next_pending_approval(aprovacoes: List[Dict]) -> Dict:
 def add_notification(data: Dict, perfil: str, numero: int, mensagem: str):
     """Adiciona uma notificação interna para o perfil informado."""
     try:
-        if USE_DATABASE:
-            db = get_database()
-            if db.db_available:
-                db.add_notificacao(perfil, numero, mensagem)
-                return
-        
-        # Fallback para JSON
-        data.setdefault("notificacoes", [])
-        data["notificacoes"].append({
-            "perfil": perfil,
-            "numero": numero,
-            "mensagem": mensagem,
-            "data": datetime.datetime.now().isoformat(),
-            "lida": False
-        })
+        # Notificações desabilitadas conforme solicitação do cliente
+        pass
     except Exception:
         # Falha silenciosa para não interromper o fluxo
         pass
@@ -363,7 +313,7 @@ def find_user(data: Dict, username: str) -> Dict:
 
 def authenticate_user(data: Dict, username: str, password: str) -> Dict:
     if USE_DATABASE:
-        db = get_database()
+        db = get_local_database()
         return db.authenticate_user(username, password)
     else:
         user = find_user(data, username)
@@ -393,7 +343,7 @@ def add_user(data: Dict, username: str, nome: str, perfil: str, departamento: st
         return "Preencha usuário, senha e perfil."
     
     if USE_DATABASE:
-        db = get_database()
+        db = get_local_database()
         success = db.add_user(username, nome or username, perfil, departamento or "Outro", senha)
         return "" if success else "Usuário já existe."
     else:
@@ -410,7 +360,7 @@ def add_user(data: Dict, username: str, nome: str, perfil: str, departamento: st
 
 def reset_user_password(data: Dict, username: str, nova_senha: str) -> str:
     if USE_DATABASE:
-        db = get_database()
+        db = get_local_database()
         ok = db.update_user_password(username, nova_senha)
         return "" if ok else "Usuário não encontrado."
     user = find_user(data, username)
@@ -422,7 +372,7 @@ def reset_user_password(data: Dict, username: str, nova_senha: str) -> str:
 def migrate_users_to_db_from_json(data: Dict):
     """Migra usuários existentes no JSON para o banco (uma vez)."""
     try:
-        db = get_database()
+        db = get_local_database()
         if not getattr(db, "db_available", False):
             return
         existentes = {u.get("username") for u in db.get_all_users()}
@@ -491,15 +441,25 @@ def format_brl(valor) -> str:
         return "N/A"
 
 def main():
-    # CRÍTICO: Inicializa chaves de sessão persistentes PRIMEIRO
+    # Configuração da página - deve ser a primeira chamada Streamlit
+    st.set_page_config(
+        page_title="Sistema de Gestão de Compras - SLA",
+        page_icon="📋",
+        layout="wide"
+    )
+    
+    # Inicializa chaves de sessão
     initialize_persistent_keys()
     
-    # Restaura sessão usando múltiplas estratégias
+    # Restaura sessão do PostgreSQL local
     if USE_DATABASE:
-        session_manager = get_session_manager()
-        session_manager.restore_session()
+        try:
+            session_manager = get_session_manager()
+            session_manager.restore_session()
+        except Exception as e:
+            print(f"Erro ao restaurar sessão: {e}")
     else:
-        # Cloud/simple mode: tenta restaurar sessão via cookie
+        # Fallback para sistema simples
         try:
             ensure_session_persistence()
         except Exception:
@@ -507,9 +467,6 @@ def main():
 
 def initialize_persistent_keys():
     """Inicializa chaves persistentes que sobrevivem ao refresh"""
-    # Sistema robusto de persistência
-    ensure_robust_session_persistence()
-    
     # Cria chaves únicas baseadas no session_id do Streamlit
     if "_app_session_id" not in st.session_state:
         import time
@@ -573,16 +530,12 @@ def initialize_persistent_keys():
                 else:
                     st.error("Usuário ou senha incorretos.")
             else:
-                # Sistema simples para cloud
-                if IS_CLOUD:
-                    user = simple_login(data, login_user.strip(), login_pass)
-                else:
-                    user = authenticate_user(data, login_user.strip(), login_pass)
+                # Sistema simples de fallback
+                user = authenticate_user(data, login_user.strip(), login_pass)
                 
                 if user:
-                    # Define usuário usando sistema robusto de persistência
-                    ps = get_persistent_session()
-                    ps.save_user_session(user)
+                    st.session_state["usuario"] = user
+                    st.session_state["_user_backup"] = user
                     st.success("Login realizado com sucesso!")
                     st.rerun()
                 else:
@@ -605,10 +558,11 @@ def initialize_persistent_keys():
                 session_manager = get_session_manager()
                 session_manager.logout()
             else:
-                simple_logout()
-            # Limpa sistema robusto de persistência também
-            ps = get_persistent_session()
-            ps.clear_session()
+                # Limpa sessão simples
+                if "usuario" in st.session_state:
+                    del st.session_state["usuario"]
+                if "_user_backup" in st.session_state:
+                    del st.session_state["_user_backup"]
             st.rerun()
     
     # Notificações removidas conforme solicitação do cliente
@@ -622,10 +576,10 @@ def initialize_persistent_keys():
     if perfil_atual == "Admin":
         from profiles.admin import get_profile_options
         opcoes = get_profile_options()
-    elif perfil_atual == "Gerência&Diretoria":
+    elif perfil_atual == "Gerência&Diretoria" or perfil_atual.lower() == "aprovador":
         from profiles.diretoria import get_profile_options
         opcoes = get_profile_options()
-    elif perfil_atual == "Suprimentos":
+    elif perfil_atual.lower() == "suprimentos":
         from profiles.suprimentos import get_profile_options
         opcoes = get_profile_options()
     else:  # Solicitante
@@ -667,55 +621,29 @@ def initialize_persistent_keys():
     if perfil_atual == "Admin":
         from profiles.admin import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
-    elif perfil_atual == "Gerência&Diretoria":
+    elif perfil_atual == "Gerência&Diretoria" or perfil_atual.lower() == "aprovador":
         from profiles.diretoria import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
-    elif perfil_atual == "Suprimentos":
+    elif perfil_atual.lower() == "suprimentos":
         from profiles.suprimentos import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
     else:  # Solicitante
         from profiles.solicitante import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
 
-# Inicialização crítica da sessão ANTES de qualquer coisa
 def init_session():
-    """Inicializa sessão persistente no início da aplicação"""
-    # Primeira tentativa: usar sistema de banco se disponível
+    """Inicializa sessão no início da aplicação"""
     if USE_DATABASE:
         try:
             session_manager = get_session_manager()
-            if session_manager.restore_session():
-                return
+            session_manager.restore_session()
         except Exception:
             pass
     
-    # Segunda tentativa: sistema de cookies/fallback
-    try:
-        ensure_session_persistence()
-    except Exception:
-        pass
-    
-    # Terceira tentativa: usar query params como último recurso
-    try:
-        restore_from_url_params()
-    except Exception:
-        pass
-
-def restore_from_url_params():
-    """Restaura sessão usando parâmetros da URL como fallback"""
-    # Verifica se há parâmetros de sessão na URL
-    query_params = st.query_params if hasattr(st, 'query_params') else {}
-    
-    # Se não há usuário logado mas há backup persistente, restaura
-    if "usuario" not in st.session_state:
-        # Tenta diferentes chaves de backup
-        backup_keys = ["_persistent_user_backup", "_session_backup", "_user_data_backup"]
-        for key in backup_keys:
-            if key in st.session_state:
-                st.session_state["usuario"] = st.session_state[key]
-                break
+    # Restaura backup de usuário se disponível
+    if "usuario" not in st.session_state and "_user_backup" in st.session_state:
+        st.session_state["usuario"] = st.session_state["_user_backup"]
 
 if __name__ == "__main__":
-    # Garante restauração de sessão antes de tudo
     init_session()
     main()

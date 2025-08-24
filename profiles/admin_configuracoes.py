@@ -12,7 +12,8 @@ def configuracoes_sla(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     st.markdown("## ⚙️ Configurações SLA")
     
     # Importa funções necessárias
-    from app import save_data, get_database
+    from app import save_data
+    from database_local import get_local_database as get_database
     
     config = data.get("configuracoes", {})
     

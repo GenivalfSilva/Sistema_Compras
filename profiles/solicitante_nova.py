@@ -18,7 +18,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     # Importações condicionais
     if USE_DATABASE:
         try:
-            from database import get_database
+            from database_local import get_local_database as get_database
         except ImportError:
             USE_DATABASE = False
     
@@ -159,7 +159,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                     with col_np1:
                         novo_codigo = st.text_input("Código*", placeholder="Ex: PROD001")
                         novo_nome = st.text_input("Nome do Produto*", placeholder="Ex: Cabo HDMI 2m")
-                        nova_categoria = st.selectbox("Categoria", ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"])
+                        nova_categoria = st.selectbox("Categoria", ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Construção", "Outro"])
                     with col_np2:
                         nova_unidade = st.selectbox("Unidade", ["UN", "PC", "KG", "M", "L", "CX", "PAR"])
                         novo_preco = st.number_input("Preço Estimado (R$)", min_value=0.0, step=0.01, format="%.2f")
@@ -219,9 +219,13 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             with col_ep1:
                                 edit_codigo = st.text_input("Código*", value=produto_selecionado_edit.get('codigo', ''))
                                 edit_nome = st.text_input("Nome do Produto*", value=produto_selecionado_edit.get('nome', ''))
+                                categorias_disponiveis = ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Construção", "Outro"]
+                                categoria_atual = produto_selecionado_edit.get('categoria', 'Outro')
+                                if categoria_atual not in categorias_disponiveis:
+                                    categoria_atual = 'Outro'
                                 edit_categoria = st.selectbox("Categoria", 
-                                    ["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"],
-                                    index=["Eletrônicos", "Escritório", "Limpeza", "Manutenção", "TI", "Outro"].index(produto_selecionado_edit.get('categoria', 'Outro')))
+                                    categorias_disponiveis,
+                                    index=categorias_disponiveis.index(categoria_atual))
                             with col_ep2:
                                 edit_unidade = st.selectbox("Unidade", 
                                     ["UN", "PC", "KG", "M", "L", "CX", "PAR"],

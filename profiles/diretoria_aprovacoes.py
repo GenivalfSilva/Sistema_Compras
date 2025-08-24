@@ -13,7 +13,8 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     st.markdown("## 📱 Aprovações")
     
     # Importa funções necessárias
-    from app import save_data, add_notification, get_database, format_brl
+    from app import save_data, add_notification, format_brl
+    from database_local import get_local_database as get_database
     
     # Filtra solicitações que precisam de aprovação
     solicitacoes_aprovacao = []

@@ -13,7 +13,8 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     st.markdown("## 🔄 Mover para Próxima Etapa")
     
     # Importa funções necessárias
-    from app import save_data, add_notification, get_database, format_brl
+    from app import save_data, add_notification, format_brl
+    from database_local import get_local_database as get_database
     
     # Define etapas do processo - Fluxo completo de 8 etapas
     etapas_processo = [

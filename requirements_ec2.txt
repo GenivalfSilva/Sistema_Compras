@@ -1,10 +1,15 @@
-# Requirements otimizados para deploy em EC2 com PostgreSQL local
+# Requirements otimizados para deploy em EC2 com PostgreSQL local - Versão Moderna
 streamlit==1.28.1
 pandas==2.1.1
 openpyxl==3.1.2
 psycopg2-binary==2.9.7
 reportlab==4.0.4
 toml==0.10.2
+
+# Dependências para interface moderna e gráficos - Compatível Python 3.12
+plotly>=5.0.0
+numpy>=1.21.0
+python-dateutil==2.8.2
 
 # Dependências do sistema removidas (não necessárias para EC2)
 # extra-streamlit-components - removido (usado apenas para Streamlit Cloud)

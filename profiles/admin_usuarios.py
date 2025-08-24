@@ -13,7 +13,8 @@ def gerenciar_usuarios(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     st.markdown("## 👥 Gerenciar Usuários")
     
     # Importa funções necessárias
-    from app import save_data, add_user, reset_user_password, get_database
+    from app import save_data, add_user, reset_user_password
+    from database_local import get_local_database as get_database
     
     # Tabs para organizar funcionalidades
     tab1, tab2, tab3 = st.tabs(["👤 Criar Usuário", "📋 Lista de Usuários", "🔑 Resetar Senhas"])

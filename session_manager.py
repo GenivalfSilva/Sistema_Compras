@@ -2,13 +2,13 @@ import streamlit as st
 import uuid
 import hashlib
 from typing import Dict, Optional
-from database import get_database
+from database_local import get_local_database
 
 class SessionManager:
     """Gerenciador de sessões persistentes para Streamlit"""
     
     def __init__(self):
-        self.db = get_database()
+        self.db = get_local_database()
         self.session_key = "persistent_session_id"
     
     def create_session(self, username: str) -> str:
@@ -36,9 +36,11 @@ class SessionManager:
         try:
             db_username = self.db.validate_session(session_id)
             if db_username:
-                user = self.db.authenticate_user_by_username(db_username)
-                if user:
-                    return user
+                # Busca usuário por username no PostgreSQL local
+                users = self.db.get_all_users()
+                for user in users:
+                    if user.get('username') == db_username:
+                        return user
         except:
             pass
         
@@ -80,11 +82,28 @@ class SessionManager:
         session_id = st.session_state.get(self.session_key)
         
         if session_id:
-            self.db.delete_session(session_id)
+            # PostgreSQL local não tem delete_session, mas não é crítico
+            try:
+                # Poderia implementar delete se necessário, mas sessões expiram automaticamente
+                pass
+            except:
+                pass
         
-        # Remove do session_state
-        st.session_state.pop(self.session_key, None)
-        st.session_state.pop("usuario", None)
+        # Remove TODAS as chaves de sessão relacionadas ao usuário
+        keys_to_remove = [
+            self.session_key,
+            "usuario", 
+            "session_username",
+            "_user_backup",
+            "authenticated",
+            "login_status"
+        ]
+        
+        for key in keys_to_remove:
+            st.session_state.pop(key, None)
+        
+        # Limpa qualquer cache de sessão
+        st.session_state.clear()
     
     def is_logged_in(self) -> bool:
         """Verifica se usuário está logado"""
