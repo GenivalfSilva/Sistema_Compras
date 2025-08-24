@@ -26,14 +26,21 @@ def _has_cloud_db_credentials() -> bool:
     except Exception:
         return False
 
+# Força uso do Railway PostgreSQL sempre que disponível
 USE_DATABASE = False
 try:
-    if (IS_CLOUD and _has_cloud_db_credentials()) or (not IS_CLOUD):
+    # Verifica se Railway está configurado
+    import os
+    railway_available = os.path.exists('secrets_railway.toml')
+    
+    if railway_available or (IS_CLOUD and _has_cloud_db_credentials()) or (not IS_CLOUD):
         from database import get_database
         from session_manager import get_session_manager
         USE_DATABASE = True
-except Exception:
+        print("✅ Usando Railway PostgreSQL para todas as operações")
+except Exception as e:
     USE_DATABASE = False
+    print(f"⚠️ Fallback para sistema simples: {e}")
 
 if not USE_DATABASE:
     # Fallback para autenticação simples em memória

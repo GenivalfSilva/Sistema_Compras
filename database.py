@@ -38,32 +38,61 @@ class DatabaseManager:
             self.conn = None
     
     def setup_cloud_database(self):
-        """Configura banco para Streamlit Cloud"""
+        """Configura banco para Streamlit Cloud com suporte a Supabase"""
         try:
             # Tenta PostgreSQL primeiro se configurado
             import psycopg2
             from psycopg2.extras import RealDictCursor
 
             conn = None
-            if hasattr(st, 'secrets') and ('postgres' in st.secrets or 'database' in st.secrets):
-                pg = st.secrets.get("postgres") or st.secrets.get("database")
-                # sslmode opcional; default para 'require' quando usando provedores gerenciados (Neon)
-                sslmode = pg.get("sslmode", "require")
-                conn = psycopg2.connect(
-                    host=pg["host"],
-                    database=pg.get("database") or pg.get("name"),
-                    user=pg["user"],
-                    password=pg["password"],
-                    port=int(pg.get("port", 5432)),
-                    sslmode=sslmode,
-                    cursor_factory=RealDictCursor,
-                )
-            elif hasattr(st, 'secrets') and 'postgres_url' in st.secrets:
-                conn = psycopg2.connect(st.secrets['postgres_url'], cursor_factory=RealDictCursor)
-            elif hasattr(st, 'secrets') and 'database_url' in st.secrets:
-                conn = psycopg2.connect(st.secrets['database_url'], cursor_factory=RealDictCursor)
-            elif os.getenv('DATABASE_URL'):
-                conn = psycopg2.connect(os.getenv('DATABASE_URL'), cursor_factory=RealDictCursor)
+            # Prioriza configuração do Supabase
+            # Fallback para arquivo local de configuração (prioriza Railway, depois Supabase, depois Neon)
+            try:
+                import toml
+                # Primeiro tenta Railway
+                if os.path.exists('secrets_railway.toml'):
+                    config = toml.load('secrets_railway.toml')
+                    if 'database' in config and 'url' in config['database']:
+                        conn = psycopg2.connect(config['database']['url'], cursor_factory=RealDictCursor)
+                # Segundo tenta Supabase
+                elif os.path.exists('secrets_supabase.toml'):
+                    config = toml.load('secrets_supabase.toml')
+                    if 'postgres' in config:
+                        pg = config['postgres']
+                        conn = psycopg2.connect(
+                            host=pg["host"],
+                            database=pg["database"],
+                            user=pg["username"],
+                            password=pg["password"],
+                            port=int(pg.get("port", 5432)),
+                            sslmode="require",
+                            cursor_factory=RealDictCursor,
+                        )
+                    elif 'database' in config and 'url' in config['database']:
+                        conn = psycopg2.connect(config['database']['url'], cursor_factory=RealDictCursor)
+                # Fallback para Neon se Supabase não estiver configurado
+                elif os.path.exists('secrets_neon.toml'):
+                    config = toml.load('secrets_neon.toml')
+                    if 'postgres' in config:
+                        pg = config['postgres']
+                        conn = psycopg2.connect(
+                            host=pg["host"],
+                            database=pg["database"],
+                            user=pg["username"],
+                            password=pg["password"],
+                            port=int(pg.get("port", 5432)),
+                            sslmode="require",
+                            cursor_factory=RealDictCursor,
+                        )
+                    elif 'database' in config and 'url' in config['database']:
+                        conn = psycopg2.connect(config['database']['url'], cursor_factory=RealDictCursor)
+            except Exception as e:
+                print(f"Erro ao ler configuração de banco: {e}")
+                # Tenta st.secrets como fallback
+                if hasattr(st, 'secrets') and 'database_url' in st.secrets:
+                    conn = psycopg2.connect(st.secrets['database_url'], cursor_factory=RealDictCursor)
+                elif os.getenv('DATABASE_URL'):
+                    conn = psycopg2.connect(os.getenv('DATABASE_URL'), cursor_factory=RealDictCursor)
 
             if conn is not None:
                 self.conn = conn
