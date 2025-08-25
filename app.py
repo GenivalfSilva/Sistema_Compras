@@ -27,11 +27,13 @@ except Exception as e:
 # Arquivo para armazenar os dados
 DATA_FILE = "compras_sla_data.json"
 
-# Configurações baseadas na planilha Excel - Fluxo completo de 8 etapas
+# Configurações baseadas na planilha Excel - Fluxo completo com Requisição
 ETAPAS_PROCESSO = [
     "Solicitação",
+    "Requisição",
     "Suprimentos", 
     "Em Cotação",
+    "Pedido de Compras",
     "Aguardando Aprovação",
     "Aprovado",
     "Reprovado",
@@ -582,6 +584,10 @@ def initialize_persistent_keys():
     elif perfil_atual.lower() == "suprimentos":
         from profiles.suprimentos import get_profile_options
         opcoes = get_profile_options()
+    elif perfil_atual.lower() == "estoque":
+        from profiles.estoque_requisicoes import show_estoque_requisicoes
+        show_estoque_requisicoes()
+        return
     else:  # Solicitante
         from profiles.solicitante import get_profile_options
         opcoes = get_profile_options()

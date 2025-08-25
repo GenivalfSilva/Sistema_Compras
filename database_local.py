@@ -67,11 +67,12 @@ class LocalDatabaseManager:
         )
         ''')
 
-        # Tabela de solicitações com schema completo de 8 etapas
+        # Tabela de solicitações com schema completo incluindo Requisição
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS solicitacoes (
             id SERIAL PRIMARY KEY,
             numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
+            numero_requisicao INTEGER,
             numero_pedido_compras INTEGER,
             solicitante TEXT NOT NULL,
             departamento TEXT NOT NULL,
@@ -81,6 +82,8 @@ class LocalDatabaseManager:
             status TEXT NOT NULL,
             etapa_atual TEXT NOT NULL,
             carimbo_data_hora TEXT NOT NULL,
+            data_requisicao TEXT,
+            responsavel_estoque TEXT,
             data_numero_pedido TEXT,
             data_cotacao TEXT,
             data_entrega TEXT,
@@ -100,7 +103,7 @@ class LocalDatabaseManager:
             aprovacoes TEXT,
             historico_etapas TEXT,
             itens TEXT,
-            -- Campos adicionais para 8 etapas
+            -- Campos adicionais para fluxo completo
             data_entrega_prevista TEXT,
             data_entrega_real TEXT,
             entrega_conforme TEXT,
@@ -111,6 +114,8 @@ class LocalDatabaseManager:
             data_finalizacao TEXT,
             tipo_solicitacao TEXT,
             justificativa TEXT,
+            observacoes_requisicao TEXT,
+            observacoes_pedido_compras TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
@@ -135,6 +140,20 @@ class LocalDatabaseManager:
             unidade TEXT NOT NULL,
             ativo BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Tabela de auditoria para ações do Admin
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS auditoria_admin (
+            id SERIAL PRIMARY KEY,
+            usuario TEXT NOT NULL,
+            acao TEXT NOT NULL,
+            modulo TEXT NOT NULL,
+            detalhes TEXT,
+            solicitacao_id INTEGER,
+            ip_address TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
@@ -533,6 +552,70 @@ class LocalDatabaseManager:
         except Exception as e:
             print(f"Erro ao validar sessão: {e}")
             return ""
+    
+    def get_next_numero_requisicao(self) -> int:
+        """Retorna próximo número de requisição disponível"""
+        if not self.db_available or not self.conn:
+            return 1
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT MAX(numero_requisicao) FROM solicitacoes WHERE numero_requisicao IS NOT NULL')
+            result = cursor.fetchone()
+            max_num = result[0] if result and result[0] else 0
+            return max_num + 1
+        except Exception as e:
+            print(f"Erro ao buscar próximo número de requisição: {e}")
+            return 1
+    
+    def get_next_numero_pedido(self) -> int:
+        """Retorna próximo número de pedido de compras disponível"""
+        if not self.db_available or not self.conn:
+            return 1
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT MAX(numero_pedido_compras) FROM solicitacoes WHERE numero_pedido_compras IS NOT NULL')
+            result = cursor.fetchone()
+            max_num = result[0] if result and result[0] else 0
+            return max_num + 1
+        except Exception as e:
+            print(f"Erro ao buscar próximo número de pedido: {e}")
+            return 1
+    
+    def log_admin_action(self, usuario: str, acao: str, modulo: str, detalhes: str = None, solicitacao_id: int = None, ip_address: str = None):
+        """Registra ação do Admin para auditoria"""
+        if not self.db_available or not self.conn:
+            return False
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                INSERT INTO auditoria_admin (usuario, acao, modulo, detalhes, solicitacao_id, ip_address)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            ''', (usuario, acao, modulo, detalhes, solicitacao_id, ip_address))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao registrar log de auditoria: {e}")
+            return False
+    
+    def get_admin_audit_logs(self, limit: int = 100, offset: int = 0):
+        """Recupera logs de auditoria do Admin"""
+        if not self.db_available or not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+                SELECT * FROM auditoria_admin 
+                ORDER BY timestamp DESC 
+                LIMIT %s OFFSET %s
+            ''', (limit, offset))
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Erro ao buscar logs de auditoria: {e}")
+            return []
     
     def close(self):
         """Fecha conexão"""

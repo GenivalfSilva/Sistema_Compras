@@ -56,6 +56,13 @@ def setup_default_users():
             "perfil": "Suprimentos",
             "departamento": "Suprimentos",
             "senha": "Teste123"
+        },
+        {
+            "username": "Estoque.Sistema",
+            "nome": "Responsável Estoque",
+            "perfil": "Estoque",
+            "departamento": "Estoque",
+            "senha": "Teste123"
         }
     ]
     
@@ -91,6 +98,7 @@ def setup_default_users():
     
     default_configs = {
         'proximo_numero_solicitacao': '1',
+        'proximo_numero_requisicao': '1',
         'proximo_numero_pedido': '1',
         'limite_gerencia': '5000.0',
         'limite_diretoria': '15000.0',
@@ -112,6 +120,7 @@ def setup_default_users():
     print("- Genival.Silva / Teste123 (Solicitante)")
     print("- Diretoria / Teste123 (Aprovador)")
     print("- Fabio.Ramos / Teste123 (Suprimentos)")
+    print("- Estoque.Sistema / Teste123 (Estoque)")
     
     return True
 

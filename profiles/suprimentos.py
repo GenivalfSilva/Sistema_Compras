@@ -9,7 +9,8 @@ from typing import Dict, List
 def get_profile_options() -> List[str]:
     """Retorna as opções de menu disponíveis para o perfil Suprimentos"""
     return [
-        "📑 Requisição (Estoque)",
+        "🏭 Processar Requisições",
+        "📑 Requisição (Estoque) - Legado",
         "🔄 Mover para Próxima Etapa",
         "📊 Dashboard SLA",
         "📚 Histórico por Etapa",
@@ -18,7 +19,10 @@ def get_profile_options() -> List[str]:
 
 def handle_profile_option(opcao: str, data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     """Roteador principal para as opções do perfil Suprimentos"""
-    if opcao == "📑 Requisição (Estoque)":
+    if opcao == "🏭 Processar Requisições":
+        from .suprimentos_requisicoes import show_suprimentos_requisicoes
+        show_suprimentos_requisicoes()
+    elif opcao == "📑 Requisição (Estoque) - Legado":
         from .suprimentos_requisicao import requisicao_estoque
         requisicao_estoque(data, usuario, USE_DATABASE)
     elif opcao == "🔄 Mover para Próxima Etapa":

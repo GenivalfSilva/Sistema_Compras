@@ -16,11 +16,13 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     from app import save_data, add_notification, format_brl
     from database_local import get_local_database as get_database
     
-    # Define etapas do processo - Fluxo completo de 8 etapas
+    # Define etapas do processo - Fluxo completo com Requisição
     etapas_processo = [
         "Solicitação",
+        "Requisição",
         "Suprimentos", 
         "Em Cotação",
+        "Pedido de Compras",
         "Aguardando Aprovação",
         "Aprovado",
         "Reprovado",
@@ -33,8 +35,9 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     solicitacoes_moveveis = []
     for sol in data.get("solicitacoes", []):
         etapa_atual = sol.get("etapa_atual", sol.get("status", ""))
-        # Suprimentos pode mover de: Compra feita -> Aguardando Entrega -> Pedido Finalizado
-        if etapa_atual in ["Compra feita", "Aguardando Entrega"]:
+        # Suprimentos pode mover de: Requisição -> Suprimentos -> Em Cotação -> Pedido de Compras
+        # E também: Compra feita -> Aguardando Entrega -> Pedido Finalizado
+        if etapa_atual in ["Requisição", "Suprimentos", "Em Cotação", "Compra feita", "Aguardando Entrega"]:
             solicitacoes_moveveis.append(sol)
     
     if not solicitacoes_moveveis:
