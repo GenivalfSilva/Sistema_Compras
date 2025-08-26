@@ -7,11 +7,13 @@ import streamlit as st
 from typing import Dict, List
 
 def get_profile_options() -> List[str]:
-    """Retorna as opções de menu disponíveis para o perfil Admin"""
+    """Retorna as opções de menu disponíveis para o perfil Admin - ACESSO COMPLETO"""
     return [
         "📝 Nova Solicitação",
+        "📋 Minhas Solicitações",
         "📋 Gestão de Requisições (Estoque)",
         "🏭 Processar Requisições (Suprimentos)",
+        "📑 Requisição (Estoque) - Legado",
         "🔄 Mover para Próxima Etapa",
         "📱 Aprovações",
         "📊 Dashboard SLA",
@@ -23,16 +25,22 @@ def get_profile_options() -> List[str]:
     ]
 
 def handle_profile_option(opcao: str, data: Dict, usuario: Dict, USE_DATABASE: bool = False):
-    """Roteador principal para as opções do perfil Admin"""
+    """Roteador principal para as opções do perfil Admin - ACESSO COMPLETO"""
     if opcao == "📝 Nova Solicitação":
         from .solicitante_nova import nova_solicitacao
         nova_solicitacao(data, usuario, USE_DATABASE)
+    elif opcao == "📋 Minhas Solicitações":
+        from .solicitante_minhas import minhas_solicitacoes
+        minhas_solicitacoes(data, usuario, USE_DATABASE)
     elif opcao == "📋 Gestão de Requisições (Estoque)":
         from .estoque_requisicoes import show_estoque_requisicoes
         show_estoque_requisicoes()
     elif opcao == "🏭 Processar Requisições (Suprimentos)":
         from .suprimentos_requisicoes import show_suprimentos_requisicoes
         show_suprimentos_requisicoes()
+    elif opcao == "📑 Requisição (Estoque) - Legado":
+        from .suprimentos_requisicao import requisicao_estoque
+        requisicao_estoque(data, usuario, USE_DATABASE)
     elif opcao == "🔄 Mover para Próxima Etapa":
         from .suprimentos_mover import mover_etapa
         mover_etapa(data, usuario, USE_DATABASE)

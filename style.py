@@ -47,7 +47,7 @@ def get_custom_css() -> str:
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .title-text {
-        color: var(--ziran-white);
+        color: black !important;
         margin: 0;
         font-family: 'Poppins', sans-serif;
         font-weight: 600;

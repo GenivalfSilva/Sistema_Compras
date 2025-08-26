@@ -499,7 +499,7 @@ def initialize_persistent_keys():
             st.markdown('<div style="font-size: 4rem; text-align: center; color: white;">🏢</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<h1 class="title-text">📋 Sistema de Gestão de Compras - SLA</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="title-text" style="color: #000000 !important; background: rgba(255,255,255,0.9) !important; padding: 0.5rem !important; border-radius: 8px !important; text-shadow: none !important;">📋 Sistema de Gestão de Compras - SLA</h1>', unsafe_allow_html=True)
         st.markdown('<p class="subtitle-text">Controle de Solicitações e Medição de SLA</p>', unsafe_allow_html=True)
         st.markdown('<p class="brand-text">✨ Ziran - Gestão Inteligente</p>', unsafe_allow_html=True)
     
@@ -585,9 +585,8 @@ def initialize_persistent_keys():
         from profiles.suprimentos import get_profile_options
         opcoes = get_profile_options()
     elif perfil_atual.lower() == "estoque":
-        from profiles.estoque_requisicoes import show_estoque_requisicoes
-        show_estoque_requisicoes()
-        return
+        from profiles.estoque import get_profile_options
+        opcoes = get_profile_options()
     else:  # Solicitante
         from profiles.solicitante import get_profile_options
         opcoes = get_profile_options()
@@ -632,6 +631,9 @@ def initialize_persistent_keys():
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
     elif perfil_atual.lower() == "suprimentos":
         from profiles.suprimentos import handle_profile_option
+        handle_profile_option(opcao, data, usuario, USE_DATABASE)
+    elif perfil_atual.lower() == "estoque":
+        from profiles.estoque import handle_profile_option
         handle_profile_option(opcao, data, usuario, USE_DATABASE)
     else:  # Solicitante
         from profiles.solicitante import handle_profile_option

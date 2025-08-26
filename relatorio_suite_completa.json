@@ -1,0 +1,715 @@
+{
+  "execucao": {
+    "data_inicio": "2025-08-25T15:10:36.359401",
+    "data_fim": "2025-08-25T15:15:20.058393",
+    "duracao_segundos": 283.696502
+  },
+  "resumo_geral": {
+    "suites_disponiveis": 3,
+    "suites_executadas": 3,
+    "total_testes": 111,
+    "total_sucessos": 96,
+    "total_falhas": 15,
+    "taxa_sucesso_geral": 86.48648648648648
+  },
+  "resultados_por_suite": {
+    "backend": {
+      "executado": true,
+      "total_testes": 65,
+      "sucessos": 65,
+      "falhas": 0,
+      "taxa_sucesso": 100.0,
+      "resultados": [
+        {
+          "teste": "Transição: Solicitação → Requisição",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.360909"
+        },
+        {
+          "teste": "Transição: Requisição → Suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.360909"
+        },
+        {
+          "teste": "Transição: Suprimentos → Em Cotação",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.360909"
+        },
+        {
+          "teste": "Transição: Em Cotação → Pedido de Compras",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Pedido de Compras → Aguardando Aprovação",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Aguardando Aprovação → Aprovado",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Aguardando Aprovação → Reprovado",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Aprovado → Compra feita",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Compra feita → Aguardando Entrega",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição: Aguardando Entrega → Pedido Finalizado",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Solicitação → Aprovado",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Requisição → Pedido Finalizado",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Suprimentos → Reprovado",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Em Cotação → Aguardando Entrega",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Pedido Finalizado → Solicitação",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Reprovado → Aprovado",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Transição Inválida: Aprovado → Reprovado",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente bloqueada",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Solicitante: pode_criar_solicitacao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Solicitante: pode_mover_para_requisicao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Solicitante: pode_processar_suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Solicitante: pode_aprovar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Solicitante: pode_finalizar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Estoque: pode_criar_solicitacao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Estoque: pode_mover_para_requisicao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Estoque: pode_processar_suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Estoque: pode_aprovar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Estoque: pode_finalizar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Suprimentos: pode_criar_solicitacao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Suprimentos: pode_mover_para_requisicao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Suprimentos: pode_processar_suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Suprimentos: pode_aprovar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Suprimentos: pode_finalizar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Gerência&Diretoria: pode_criar_solicitacao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Gerência&Diretoria: pode_mover_para_requisicao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Gerência&Diretoria: pode_processar_suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Gerência&Diretoria: pode_aprovar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Gerência&Diretoria: pode_finalizar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Admin: pode_criar_solicitacao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Admin: pode_mover_para_requisicao",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Admin: pode_processar_suprimentos",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Admin: pode_aprovar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "Permissão Admin: pode_finalizar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "SLA Urgente - Dentro do prazo (0/1 dias)",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "SLA Urgente - Estourado (2/1 dias)",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente identificado como atrasado",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "SLA Alta - Dentro do prazo (0/2 dias)",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.362165"
+        },
+        {
+          "teste": "SLA Alta - Estourado (3/2 dias)",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente identificado como atrasado",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "SLA Normal - Dentro do prazo (0/3 dias)",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "SLA Normal - Estourado (4/3 dias)",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente identificado como atrasado",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "SLA Baixa - Dentro do prazo (0/5 dias)",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "SLA Baixa - Estourado (6/5 dias)",
+          "status": "SUCESSO",
+          "detalhes": "Corretamente identificado como atrasado",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 500.0 (Valor baixo) - Aprovador: gerencia",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 4999.0 (Limite gerência) - Aprovador: gerencia",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 5000.0 (Exato limite gerência) - Aprovador: gerencia",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 5001.0 (Acima limite gerência) - Aprovador: diretoria",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 14999.0 (Limite diretoria) - Aprovador: diretoria",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 15000.0 (Exato limite diretoria) - Aprovador: diretoria",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor 15001.0 (Acima limite diretoria) - Aprovador: especial",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Solicitação com valor zero",
+          "status": "SUCESSO",
+          "detalhes": "Valor zero aceito",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Solicitação com valor negativo",
+          "status": "SUCESSO",
+          "detalhes": "Valor negativo corretamente rejeitado",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Prioridade inválida",
+          "status": "SUCESSO",
+          "detalhes": "Prioridade inválida corretamente rejeitada",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Múltiplas transições simultâneas",
+          "status": "SUCESSO",
+          "detalhes": "Múltiplas transições bloqueadas",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Fluxo Normal Aprovado - Completo",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Fluxo Reprovado - Completo",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Fluxo Reprovado - Status final",
+          "status": "SUCESSO",
+          "detalhes": "Reprovado é status final",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        },
+        {
+          "teste": "Valor Alto (>15k) - Aprovador",
+          "status": "SUCESSO",
+          "detalhes": "Requer aprovação especial",
+          "timestamp": "2025-08-25T15:10:36.365772"
+        }
+      ]
+    },
+    "frontend_streamlit": {
+      "executado": true,
+      "total_testes": 37,
+      "sucessos": 24,
+      "falhas": 13,
+      "taxa_sucesso": 64.86486486486487,
+      "resultados": [
+        {
+          "teste": "Arquivo app.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.370373"
+        },
+        {
+          "teste": "Arquivo style.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.370373"
+        },
+        {
+          "teste": "Arquivo session_manager.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Arquivo profiles/admin.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Arquivo profiles/solicitante_nova.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Arquivo profiles/suprimentos_mover.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Arquivo profiles/estoque_requisicoes.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Arquivo profiles/diretoria_aprovacoes.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.371932"
+        },
+        {
+          "teste": "Importação Streamlit",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.619515"
+        },
+        {
+          "teste": "Módulo style.get_custom_css",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.620635"
+        },
+        {
+          "teste": "Módulo session_manager.SessionManager",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.643732"
+        },
+        {
+          "teste": "Módulo database_local.DatabaseLocal",
+          "status": "FALHA",
+          "detalhes": "Função DatabaseLocal não encontrada",
+          "timestamp": "2025-08-25T15:10:36.645751"
+        },
+        {
+          "teste": "Módulo audit_logger.AuditLogger",
+          "status": "FALHA",
+          "detalhes": "Função AuditLogger não encontrada",
+          "timestamp": "2025-08-25T15:10:36.747325"
+        },
+        {
+          "teste": "Perfil admin.py",
+          "status": "FALHA",
+          "detalhes": "Função def show_admin não encontrada",
+          "timestamp": "2025-08-25T15:10:36.747325"
+        },
+        {
+          "teste": "Perfil solicitante_nova.py",
+          "status": "FALHA",
+          "detalhes": "Função def criar_nova_solicitacao não encontrada",
+          "timestamp": "2025-08-25T15:10:36.749349"
+        },
+        {
+          "teste": "Perfil suprimentos_mover.py",
+          "status": "FALHA",
+          "detalhes": "Função def mover_solicitacao não encontrada",
+          "timestamp": "2025-08-25T15:10:36.750359"
+        },
+        {
+          "teste": "Perfil estoque_requisicoes.py",
+          "status": "FALHA",
+          "detalhes": "Função def criar_requisicao não encontrada",
+          "timestamp": "2025-08-25T15:10:36.750359"
+        },
+        {
+          "teste": "Perfil diretoria_aprovacoes.py",
+          "status": "FALHA",
+          "detalhes": "Função def aprovar_solicitacoes não encontrada",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Navegação - st.sidebar",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Navegação - st.selectbox",
+          "status": "FALHA",
+          "detalhes": "Elemento de navegação não encontrado",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Navegação - if usuario_logado",
+          "status": "FALHA",
+          "detalhes": "Elemento de navegação não encontrado",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Navegação - session_state",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Navegação - login",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.751977"
+        },
+        {
+          "teste": "Formulário solicitante_nova.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.754003"
+        },
+        {
+          "teste": "Formulário estoque_requisicoes.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.754003"
+        },
+        {
+          "teste": "Formulário suprimentos_mover.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.755513"
+        },
+        {
+          "teste": "Formulário diretoria_aprovacoes.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.755513"
+        },
+        {
+          "teste": "Responsividade app.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.757538"
+        },
+        {
+          "teste": "Responsividade style.py",
+          "status": "FALHA",
+          "detalhes": "Poucos elementos responsivos encontrados",
+          "timestamp": "2025-08-25T15:10:36.758398"
+        },
+        {
+          "teste": "Validações solicitante_nova.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.759199"
+        },
+        {
+          "teste": "Validações estoque_requisicoes.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.760707"
+        },
+        {
+          "teste": "Validações suprimentos_mover.py",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:36.760707"
+        },
+        {
+          "teste": "Carregamento da página principal",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:39.225107"
+        },
+        {
+          "teste": "Elemento 'gestão de compras' ausente",
+          "status": "FALHA",
+          "detalhes": "Elemento não encontrado na página",
+          "timestamp": "2025-08-25T15:10:39.225107"
+        },
+        {
+          "teste": "Elemento 'streamlit' presente",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:39.225107"
+        },
+        {
+          "teste": "Elemento 'ziran' ausente",
+          "status": "FALHA",
+          "detalhes": "Elemento não encontrado na página",
+          "timestamp": "2025-08-25T15:10:39.225107"
+        },
+        {
+          "teste": "Elemento 'sistema' ausente",
+          "status": "FALHA",
+          "detalhes": "Elemento não encontrado na página",
+          "timestamp": "2025-08-25T15:10:39.225107"
+        }
+      ]
+    },
+    "frontend_selenium": {
+      "executado": true,
+      "total_testes": 9,
+      "sucessos": 7,
+      "falhas": 2,
+      "taxa_sucesso": 77.77777777777779,
+      "resultados": [
+        {
+          "teste": "Performance de carregamento",
+          "status": "SUCESSO",
+          "detalhes": "0.81s",
+          "timestamp": "2025-08-25T15:10:54.436900"
+        },
+        {
+          "teste": "Carregamento da página",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:10:54.799111"
+        },
+        {
+          "teste": "Campos de login presentes",
+          "status": "FALHA",
+          "detalhes": "Apenas 0 campos encontrados",
+          "timestamp": "2025-08-25T15:11:39.935691"
+        },
+        {
+          "teste": "Botões presentes",
+          "status": "SUCESSO",
+          "detalhes": "3 botões encontrados",
+          "timestamp": "2025-08-25T15:11:49.999237"
+        },
+        {
+          "teste": "Interação de login",
+          "status": "FALHA",
+          "detalhes": "Apenas 0 campos encontrados",
+          "timestamp": "2025-08-25T15:12:25.123387"
+        },
+        {
+          "teste": "Elementos de navegação",
+          "status": "SUCESSO",
+          "detalhes": "Encontrados: botões (4)",
+          "timestamp": "2025-08-25T15:15:10.756007"
+        },
+        {
+          "teste": "Responsividade Desktop",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:15:12.776312"
+        },
+        {
+          "teste": "Responsividade Tablet",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:15:14.821415"
+        },
+        {
+          "teste": "Responsividade Mobile",
+          "status": "SUCESSO",
+          "detalhes": "",
+          "timestamp": "2025-08-25T15:15:17.204057"
+        }
+      ]
+    }
+  },
+  "configuracao": {
+    "sistema_operacional": "nt",
+    "python_version": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+    "diretorio_trabalho": "C:\\Users\\leonardo.fragoso\\Desktop\\Sistema_Compras"
+  }
+}

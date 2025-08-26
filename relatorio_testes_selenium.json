@@ -1,0 +1,71 @@
+{
+  "data_execucao": "2025-08-25T15:15:20.053164",
+  "tipo_teste": "Frontend Selenium",
+  "resumo": {
+    "total_testes": 9,
+    "sucessos": 7,
+    "falhas": 2,
+    "taxa_sucesso": 77.77777777777779
+  },
+  "resultados_detalhados": [
+    {
+      "teste": "Performance de carregamento",
+      "status": "SUCESSO",
+      "detalhes": "0.81s",
+      "timestamp": "2025-08-25T15:10:54.436900"
+    },
+    {
+      "teste": "Carregamento da página",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:54.799111"
+    },
+    {
+      "teste": "Campos de login presentes",
+      "status": "FALHA",
+      "detalhes": "Apenas 0 campos encontrados",
+      "timestamp": "2025-08-25T15:11:39.935691"
+    },
+    {
+      "teste": "Botões presentes",
+      "status": "SUCESSO",
+      "detalhes": "3 botões encontrados",
+      "timestamp": "2025-08-25T15:11:49.999237"
+    },
+    {
+      "teste": "Interação de login",
+      "status": "FALHA",
+      "detalhes": "Apenas 0 campos encontrados",
+      "timestamp": "2025-08-25T15:12:25.123387"
+    },
+    {
+      "teste": "Elementos de navegação",
+      "status": "SUCESSO",
+      "detalhes": "Encontrados: botões (4)",
+      "timestamp": "2025-08-25T15:15:10.756007"
+    },
+    {
+      "teste": "Responsividade Desktop",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:15:12.776312"
+    },
+    {
+      "teste": "Responsividade Tablet",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:15:14.821415"
+    },
+    {
+      "teste": "Responsividade Mobile",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:15:17.204057"
+    }
+  ],
+  "configuracao": {
+    "framework": "Selenium WebDriver",
+    "browser": "Chrome Headless",
+    "url_base": "http://localhost:8501"
+  }
+}

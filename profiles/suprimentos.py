@@ -10,6 +10,7 @@ def get_profile_options() -> List[str]:
     """Retorna as opções de menu disponíveis para o perfil Suprimentos"""
     return [
         "🏭 Processar Requisições",
+        "💰 Gerenciar Cotações",
         "📑 Requisição (Estoque) - Legado",
         "🔄 Mover para Próxima Etapa",
         "📊 Dashboard SLA",
@@ -22,6 +23,9 @@ def handle_profile_option(opcao: str, data: Dict, usuario: Dict, USE_DATABASE: b
     if opcao == "🏭 Processar Requisições":
         from .suprimentos_requisicoes import show_suprimentos_requisicoes
         show_suprimentos_requisicoes()
+    elif opcao == "💰 Gerenciar Cotações":
+        from .suprimentos_cotacoes import gerenciar_cotacoes
+        gerenciar_cotacoes(data, usuario, USE_DATABASE)
     elif opcao == "📑 Requisição (Estoque) - Legado":
         from .suprimentos_requisicao import requisicao_estoque
         requisicao_estoque(data, usuario, USE_DATABASE)

@@ -1,0 +1,244 @@
+{
+  "data_execucao": "2025-08-25T15:10:39.740459",
+  "tipo_teste": "Frontend Streamlit",
+  "resumo": {
+    "total_testes": 37,
+    "sucessos": 24,
+    "falhas": 13,
+    "taxa_sucesso": 64.86486486486487
+  },
+  "resultados_detalhados": [
+    {
+      "teste": "Arquivo app.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.370373"
+    },
+    {
+      "teste": "Arquivo style.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.370373"
+    },
+    {
+      "teste": "Arquivo session_manager.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Arquivo profiles/admin.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Arquivo profiles/solicitante_nova.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Arquivo profiles/suprimentos_mover.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Arquivo profiles/estoque_requisicoes.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Arquivo profiles/diretoria_aprovacoes.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.371932"
+    },
+    {
+      "teste": "Importação Streamlit",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.619515"
+    },
+    {
+      "teste": "Módulo style.get_custom_css",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.620635"
+    },
+    {
+      "teste": "Módulo session_manager.SessionManager",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.643732"
+    },
+    {
+      "teste": "Módulo database_local.DatabaseLocal",
+      "status": "FALHA",
+      "detalhes": "Função DatabaseLocal não encontrada",
+      "timestamp": "2025-08-25T15:10:36.645751"
+    },
+    {
+      "teste": "Módulo audit_logger.AuditLogger",
+      "status": "FALHA",
+      "detalhes": "Função AuditLogger não encontrada",
+      "timestamp": "2025-08-25T15:10:36.747325"
+    },
+    {
+      "teste": "Perfil admin.py",
+      "status": "FALHA",
+      "detalhes": "Função def show_admin não encontrada",
+      "timestamp": "2025-08-25T15:10:36.747325"
+    },
+    {
+      "teste": "Perfil solicitante_nova.py",
+      "status": "FALHA",
+      "detalhes": "Função def criar_nova_solicitacao não encontrada",
+      "timestamp": "2025-08-25T15:10:36.749349"
+    },
+    {
+      "teste": "Perfil suprimentos_mover.py",
+      "status": "FALHA",
+      "detalhes": "Função def mover_solicitacao não encontrada",
+      "timestamp": "2025-08-25T15:10:36.750359"
+    },
+    {
+      "teste": "Perfil estoque_requisicoes.py",
+      "status": "FALHA",
+      "detalhes": "Função def criar_requisicao não encontrada",
+      "timestamp": "2025-08-25T15:10:36.750359"
+    },
+    {
+      "teste": "Perfil diretoria_aprovacoes.py",
+      "status": "FALHA",
+      "detalhes": "Função def aprovar_solicitacoes não encontrada",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Navegação - st.sidebar",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Navegação - st.selectbox",
+      "status": "FALHA",
+      "detalhes": "Elemento de navegação não encontrado",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Navegação - if usuario_logado",
+      "status": "FALHA",
+      "detalhes": "Elemento de navegação não encontrado",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Navegação - session_state",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Navegação - login",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.751977"
+    },
+    {
+      "teste": "Formulário solicitante_nova.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.754003"
+    },
+    {
+      "teste": "Formulário estoque_requisicoes.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.754003"
+    },
+    {
+      "teste": "Formulário suprimentos_mover.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.755513"
+    },
+    {
+      "teste": "Formulário diretoria_aprovacoes.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.755513"
+    },
+    {
+      "teste": "Responsividade app.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.757538"
+    },
+    {
+      "teste": "Responsividade style.py",
+      "status": "FALHA",
+      "detalhes": "Poucos elementos responsivos encontrados",
+      "timestamp": "2025-08-25T15:10:36.758398"
+    },
+    {
+      "teste": "Validações solicitante_nova.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.759199"
+    },
+    {
+      "teste": "Validações estoque_requisicoes.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.760707"
+    },
+    {
+      "teste": "Validações suprimentos_mover.py",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:36.760707"
+    },
+    {
+      "teste": "Carregamento da página principal",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:39.225107"
+    },
+    {
+      "teste": "Elemento 'gestão de compras' ausente",
+      "status": "FALHA",
+      "detalhes": "Elemento não encontrado na página",
+      "timestamp": "2025-08-25T15:10:39.225107"
+    },
+    {
+      "teste": "Elemento 'streamlit' presente",
+      "status": "SUCESSO",
+      "detalhes": "",
+      "timestamp": "2025-08-25T15:10:39.225107"
+    },
+    {
+      "teste": "Elemento 'ziran' ausente",
+      "status": "FALHA",
+      "detalhes": "Elemento não encontrado na página",
+      "timestamp": "2025-08-25T15:10:39.225107"
+    },
+    {
+      "teste": "Elemento 'sistema' ausente",
+      "status": "FALHA",
+      "detalhes": "Elemento não encontrado na página",
+      "timestamp": "2025-08-25T15:10:39.225107"
+    }
+  ],
+  "configuracao_testada": {
+    "framework": "Streamlit",
+    "url_base": "http://localhost:8501",
+    "arquivos_testados": [
+      "app.py",
+      "style.py",
+      "session_manager.py",
+      "profiles/*.py"
+    ]
+  }
+}

@@ -7,6 +7,9 @@ from typing import Dict, List
 import datetime
 import toml
 
+# Configuração de autenticação consistente com app.py
+SALT = "ziran_local_salt_v1"
+
 class LocalDatabaseManager:
     """Gerenciador de banco PostgreSQL local para EC2"""
     
@@ -114,6 +117,7 @@ class LocalDatabaseManager:
             data_finalizacao TEXT,
             tipo_solicitacao TEXT,
             justificativa TEXT,
+            responsavel_estoque TEXT,
             observacoes_requisicao TEXT,
             observacoes_pedido_compras TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -211,7 +215,8 @@ class LocalDatabaseManager:
         try:
             cursor = self.conn.cursor()
             if not is_hashed:
-                senha_hash = hashlib.sha256(senha_hash.encode()).hexdigest()
+                # Usa método consistente com app.py (com SALT)
+                senha_hash = hashlib.sha256((SALT + senha_hash).encode("utf-8")).hexdigest()
             
             sql = '''
             INSERT INTO usuarios (username, nome, perfil, departamento, senha_hash)
@@ -239,7 +244,8 @@ class LocalDatabaseManager:
             if user:
                 user_dict = dict(user)
                 stored_hash = user_dict.get('senha_hash', '')
-                senha_hash = hashlib.sha256(password.encode()).hexdigest()
+                # Usa método consistente com app.py (com SALT)
+                senha_hash = hashlib.sha256((SALT + password).encode("utf-8")).hexdigest()
                 
                 if stored_hash == senha_hash:
                     return user_dict
@@ -268,7 +274,8 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            senha_hash = hashlib.sha256(nova_senha.encode()).hexdigest()
+            # Usa método consistente com app.py (com SALT)
+            senha_hash = hashlib.sha256((SALT + nova_senha).encode("utf-8")).hexdigest()
             sql = 'UPDATE usuarios SET senha_hash = %s WHERE username = %s'
             cursor.execute(sql, (senha_hash, username))
             self.conn.commit()
@@ -326,8 +333,9 @@ class LocalDatabaseManager:
                 fornecedor_final, anexos_requisicao, cotacoes, aprovacoes, historico_etapas, itens,
                 data_entrega_prevista, data_entrega_real, entrega_conforme, nota_fiscal,
                 responsavel_recebimento, observacoes_entrega, observacoes_finalizacao,
-                data_finalizacao, tipo_solicitacao, justificativa
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                data_finalizacao, tipo_solicitacao, justificativa, responsavel_estoque,
+                observacoes_requisicao, data_requisicao, numero_requisicao, observacoes_pedido_compras
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             '''
             
             values = (
@@ -369,7 +377,12 @@ class LocalDatabaseManager:
                 solicitacao_data.get('observacoes_finalizacao'),
                 solicitacao_data.get('data_finalizacao'),
                 solicitacao_data.get('tipo_solicitacao'),
-                solicitacao_data.get('justificativa')
+                solicitacao_data.get('justificativa'),
+                solicitacao_data.get('responsavel_estoque'),
+                solicitacao_data.get('observacoes_requisicao'),
+                solicitacao_data.get('data_requisicao'),
+                solicitacao_data.get('numero_requisicao'),
+                solicitacao_data.get('observacoes_pedido_compras')
             )
             
             cursor.execute(sql, values)

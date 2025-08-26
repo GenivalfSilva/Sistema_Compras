@@ -92,38 +92,50 @@ def show_nova_requisicao():
         # Formulário para criar requisição
         st.markdown("### 📝 Dados da Requisição no Sistema Interno")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            # Gerar próximo número de requisição
-            proximo_req = db.get_next_numero_requisicao()
-            numero_requisicao = st.number_input(
-                "Número da Requisição:",
-                value=proximo_req,
-                min_value=1,
-                help="Número da requisição no sistema interno da empresa"
+        # Usar form para evitar redirecionamentos
+        with st.form(f"form_requisicao_{sol_dados.get('numero_solicitacao_estoque')}", clear_on_submit=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                # Gerar próximo número de requisição
+                proximo_req = db.get_next_numero_requisicao()
+                numero_requisicao = st.number_input(
+                    "Número da Requisição:",
+                    value=proximo_req,
+                    min_value=1,
+                    help="Número da requisição no sistema interno da empresa",
+                    key=f"num_req_{sol_dados.get('numero_solicitacao_estoque')}"
+                )
+                
+                responsavel_estoque = st.text_input(
+                    "Responsável Estoque:",
+                    value=st.session_state.get('user_data', {}).get('nome', ''),
+                    help="Nome do responsável que está criando a requisição",
+                    key=f"resp_estoque_{sol_dados.get('numero_solicitacao_estoque')}"
+                )
+            
+            with col2:
+                data_requisicao = st.date_input(
+                    "Data da Requisição:",
+                    value=date.today(),
+                    help="Data de criação da requisição no sistema interno",
+                    key=f"data_req_{sol_dados.get('numero_solicitacao_estoque')}"
+                )
+            
+            observacoes_requisicao = st.text_area(
+                "Observações da Requisição:",
+                placeholder="Observações sobre a criação da requisição no sistema interno...",
+                help="Informações adicionais sobre o processo de requisição",
+                key=f"obs_req_{sol_dados.get('numero_solicitacao_estoque')}"
             )
             
-            responsavel_estoque = st.text_input(
-                "Responsável Estoque:",
-                value=st.session_state.get('user_data', {}).get('nome', ''),
-                help="Nome do responsável que está criando a requisição"
+            # Botão para criar requisição dentro do form
+            criar_requisicao = st.form_submit_button(
+                "🔄 Criar Requisição e Enviar para Suprimentos", 
+                type="primary"
             )
         
-        with col2:
-            data_requisicao = st.date_input(
-                "Data da Requisição:",
-                value=date.today(),
-                help="Data de criação da requisição no sistema interno"
-            )
-        
-        observacoes_requisicao = st.text_area(
-            "Observações da Requisição:",
-            placeholder="Observações sobre a criação da requisição no sistema interno...",
-            help="Informações adicionais sobre o processo de requisição"
-        )
-        
-        # Botão para criar requisição
-        if st.button("🔄 Criar Requisição e Enviar para Suprimentos", type="primary"):
+        # Processar criação da requisição
+        if criar_requisicao:
             if numero_requisicao and responsavel_estoque:
                 # Atualizar solicitação com dados da requisição
                 updates = {
@@ -158,7 +170,7 @@ def show_nova_requisicao():
                     
                     st.success(f"✅ Requisição {numero_requisicao} criada com sucesso!")
                     st.success(f"📤 Solicitação enviada para Suprimentos")
-                    st.rerun()
+                    st.info("🔄 Atualize a página para ver as mudanças ou navegue para outra seção.")
                 else:
                     st.error("❌ Erro ao criar requisição")
             else:

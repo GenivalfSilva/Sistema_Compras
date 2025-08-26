@@ -533,6 +533,30 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         itens_struct = st.session_state.get('itens_solicitacao', [])
 
         if solicitante and departamento and descricao and local_aplicacao and len(itens_struct) > 0:
+            # VALIDAÇÕES DE SEGURANÇA
+            # 1. Validar prioridade
+            prioridades_validas = ["Urgente", "Alta", "Normal", "Baixa"]
+            if prioridade not in prioridades_validas:
+                st.error(f"❌ Prioridade inválida: '{prioridade}'. Use: {', '.join(prioridades_validas)}")
+                return
+            
+            # 2. Validar valores negativos nos itens
+            for item in itens_struct:
+                if item.get('quantidade', 0) <= 0:
+                    st.error(f"❌ Quantidade inválida para '{item.get('nome', 'item')}': {item.get('quantidade')}. Deve ser maior que zero.")
+                    return
+            
+            # 3. Validar campos obrigatórios não vazios
+            if not solicitante.strip():
+                st.error("❌ Nome do solicitante não pode estar vazio.")
+                return
+            if not descricao.strip():
+                st.error("❌ Descrição não pode estar vazia.")
+                return
+            if not local_aplicacao.strip():
+                st.error("❌ Local de aplicação não pode estar vazio.")
+                return
+            
             # Gera números automáticos
             numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
             data["configuracoes"]["proximo_numero_solicitacao"] += 1
