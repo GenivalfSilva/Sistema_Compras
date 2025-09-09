@@ -13,7 +13,7 @@ Este guia orienta testes ponta a ponta por página e por perfil de usuário, gar
 
 - Logout: botão `🚪 Logout` no sidebar. Caminho: `app.py` (linhas ~632-643).
 
-- Persistência de sessão (Cloud): cookie assinado via `simple_session.py` e `ensure_session_persistence()`. O segredo `cookie_secret` deve estar configurado no `secrets.toml` do Streamlit Cloud.
+- Persistência de sessão: gerenciada via PostgreSQL (tabela `sessoes`) pelo módulo `session_manager.py` e métodos `create_session()`/`validate_session()`. Não requer `secrets.toml`.
 
 ## Preparação
 

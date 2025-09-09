@@ -117,6 +117,21 @@ def load_data() -> Dict:
                 # Busca próximos números
                 proximo_sol = int(db.get_config('proximo_numero_solicitacao', '1'))
                 proximo_ped = int(db.get_config('proximo_numero_pedido', '1'))
+                # Garante que os próximos números não conflitem com registros existentes
+                try:
+                    max_sol = max([s.get('numero_solicitacao_estoque') or 0 for s in solicitacoes] or [0])
+                    if proximo_sol <= max_sol:
+                        proximo_sol = max_sol + 1
+                        db.set_config('proximo_numero_solicitacao', str(proximo_sol))
+                except Exception:
+                    pass
+                try:
+                    max_ped = max([s.get('numero_pedido_compras') or 0 for s in solicitacoes] or [0])
+                    if proximo_ped <= max_ped:
+                        proximo_ped = max_ped + 1
+                        db.set_config('proximo_numero_pedido', str(proximo_ped))
+                except Exception:
+                    pass
                 
                 # Monta estrutura compatível
                 data = {

@@ -72,14 +72,21 @@ GRANT ALL PRIVILEGES ON DATABASE sistema_compras TO postgres;
 \q
 ```
 
-5. **Configure o arquivo secrets_local.toml:**
-```toml
-[postgres]
-host = "localhost"
-database = "sistema_compras"
-username = "postgres"
-password = "postgres123"
-port = 5432
+5. **Configure variáveis de ambiente para o banco (sem secrets_local.toml):**
+Defina uma das opções abaixo no serviço que executa o Streamlit:
+
+Opção A — única string:
+```
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/sistema_compras
+```
+
+Opção B — variáveis PG*:
+```
+PGHOST=localhost
+PGDATABASE=sistema_compras
+PGUSER=postgres
+PGPASSWORD=postgres123
+PGPORT=5432
 ```
 
 6. **Inicialize usuários padrão:**
@@ -150,7 +157,7 @@ Sistema_Compras/
 ├── session_manager.py        # Gestão de sessões
 ├── setup_users_local.py      # Setup inicial de usuários
 ├── style.py                  # Estilos CSS customizados
-├── secrets_local.toml        # Configuração PostgreSQL
+├── (variáveis de ambiente)    # Configuração PostgreSQL (DATABASE_URL ou PG*)
 ├── requirements_ec2.txt      # Dependências para EC2
 ├── profiles/                 # Módulos por perfil de usuário
 │   ├── admin.py

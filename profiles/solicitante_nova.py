@@ -557,9 +557,21 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 st.error("❌ Local de aplicação não pode estar vazio.")
                 return
             
-            # Gera números automáticos
-            numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
-            data["configuracoes"]["proximo_numero_solicitacao"] += 1
+            # Gera números automáticos (garantindo unicidade no banco)
+            if USE_DATABASE:
+                try:
+                    db_tmp = get_database()
+                    if db_tmp.db_available:
+                        numero_solicitacao = db_tmp.get_next_numero_solicitacao()
+                    else:
+                        numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
+                        data["configuracoes"]["proximo_numero_solicitacao"] += 1
+                except Exception:
+                    numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
+                    data["configuracoes"]["proximo_numero_solicitacao"] += 1
+            else:
+                numero_solicitacao = data["configuracoes"]["proximo_numero_solicitacao"]
+                data["configuracoes"]["proximo_numero_solicitacao"] += 1
             
             # Salva anexos da solicitação
             upload_root = ensure_upload_dir(data)
@@ -609,10 +621,16 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 if db.db_available:
                     success = db.add_solicitacao(nova_solicitacao)
                     if success:
-                        db.set_config('proximo_numero_solicitacao', str(data["configuracoes"]["proximo_numero_solicitacao"]))
-                        st.success(f"✅ Solicitação #{numero_solicitacao} salva no banco Neon com sucesso!")
+                        # Atualiza próximo número (apenas para consistência visual)
+                        db.set_config('proximo_numero_solicitacao', str(max(numero_solicitacao + 1, data["configuracoes"].get("proximo_numero_solicitacao", numero_solicitacao + 1))))
+                        st.success(f"✅ Solicitação #{numero_solicitacao} salva no banco de dados com sucesso!")
                     else:
-                        st.error("❌ Erro ao salvar solicitação no banco de dados.")
+                        # Mostra detalhe do erro retornado pelo DB
+                        detalhe = getattr(db, 'last_error', '')
+                        if detalhe:
+                            st.error(f"❌ Erro ao salvar solicitação no banco de dados: {detalhe}")
+                        else:
+                            st.error("❌ Erro ao salvar solicitação no banco de dados.")
                         return
                 else:
                     data["solicitacoes"].append(nova_solicitacao)

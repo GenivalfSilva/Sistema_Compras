@@ -16,7 +16,6 @@ scp -i "%KEY_PATH%" database_local.py %EC2_HOST%:%REMOTE_PATH%/
 scp -i "%KEY_PATH%" session_manager.py %EC2_HOST%:%REMOTE_PATH%/
 scp -i "%KEY_PATH%" setup_users_local.py %EC2_HOST%:%REMOTE_PATH%/
 scp -i "%KEY_PATH%" style.py %EC2_HOST%:%REMOTE_PATH%/
-scp -i "%KEY_PATH%" secrets_local.toml %EC2_HOST%:%REMOTE_PATH%/
 scp -i "%KEY_PATH%" requirements_ec2.txt %EC2_HOST%:%REMOTE_PATH%/
 scp -i "%KEY_PATH%" README.md %EC2_HOST%:%REMOTE_PATH%/
 

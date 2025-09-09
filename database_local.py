@@ -5,7 +5,6 @@ import os
 import hashlib
 from typing import Dict, List
 import datetime
-import toml
 
 # Configuração de autenticação consistente com app.py
 SALT = "ziran_local_salt_v1"
@@ -17,31 +16,31 @@ class LocalDatabaseManager:
         self.db_type = 'postgres'
         self.db_available = False
         self.conn = None
+        # Armazena a última mensagem de erro para diagnóstico na UI
+        self.last_error = ""
         self.setup_local_postgres()
     
     def setup_local_postgres(self):
         """Configura conexão PostgreSQL local"""
         try:
-            # Tenta carregar configuração do arquivo secrets_local.toml
-            config_path = 'secrets_local.toml'
-            if os.path.exists(config_path):
-                config = toml.load(config_path)
-                if 'postgres' in config:
-                    pg = config['postgres']
-                    self.conn = psycopg2.connect(
-                        host=pg["host"],
-                        database=pg["database"],
-                        user=pg["username"],
-                        password=pg["password"],
-                        port=int(pg.get("port", 5432)),
-                        cursor_factory=RealDictCursor,
-                    )
-                elif 'database' in config and 'url' in config['database']:
-                    self.conn = psycopg2.connect(config['database']['url'], cursor_factory=RealDictCursor)
-            else:
-                # Fallback para variáveis de ambiente
-                db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@localhost:5432/sistema_compras')
+            # Preferir DATABASE_URL; caso ausente, usar PG*; por fim, fallback local seguro
+            db_url = os.getenv('DATABASE_URL')
+            if db_url:
                 self.conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+            else:
+                host = os.getenv('PGHOST', 'localhost')
+                database = os.getenv('PGDATABASE', 'sistema_compras')
+                user = os.getenv('PGUSER', 'postgres')
+                password = os.getenv('PGPASSWORD', 'postgres123')
+                port = int(os.getenv('PGPORT', '5432'))
+                self.conn = psycopg2.connect(
+                    host=host,
+                    database=database,
+                    user=user,
+                    password=password,
+                    port=port,
+                    cursor_factory=RealDictCursor,
+                )
             
             if self.conn:
                 self.create_tables()
@@ -117,7 +116,6 @@ class LocalDatabaseManager:
             data_finalizacao TEXT,
             tipo_solicitacao TEXT,
             justificativa TEXT,
-            responsavel_estoque TEXT,
             observacoes_requisicao TEXT,
             observacoes_pedido_compras TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -322,6 +320,8 @@ class LocalDatabaseManager:
             return False
             
         try:
+            # Limpa última mensagem de erro
+            self.last_error = ""
             cursor = self.conn.cursor()
             sql = '''
             INSERT INTO solicitacoes (
@@ -390,6 +390,7 @@ class LocalDatabaseManager:
             return True
         except Exception as e:
             self.conn.rollback()
+            self.last_error = str(e)
             print(f"Erro ao salvar solicitação: {e}")
             return False
     
@@ -594,6 +595,20 @@ class LocalDatabaseManager:
             return max_num + 1
         except Exception as e:
             print(f"Erro ao buscar próximo número de pedido: {e}")
+            return 1
+
+    def get_next_numero_solicitacao(self) -> int:
+        """Retorna o próximo número de solicitação (estoque) disponível (MAX + 1)."""
+        if not self.db_available or not self.conn:
+            return 1
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT MAX(numero_solicitacao_estoque) FROM solicitacoes')
+            result = cursor.fetchone()
+            max_num = result[0] if result and result[0] else 0
+            return max_num + 1
+        except Exception as e:
+            print(f"Erro ao buscar próximo número de solicitação: {e}")
             return 1
     
     def log_admin_action(self, usuario: str, acao: str, modulo: str, detalhes: str = None, solicitacao_id: int = None, ip_address: str = None):

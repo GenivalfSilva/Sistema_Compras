@@ -142,20 +142,12 @@ def main():
         print(f"   Porta: {working_config['port']}")
         print(f"   Usuário: {working_config['user']}")
         print(f"   Senha: {working_config['password']}")
-        
-        # Criar arquivo de configuração
-        config_content = f"""[postgres]
-host = "{working_config['host']}"
-port = {working_config['port']}
-username = "{working_config['user']}"
-password = "{working_config['password']}"
-database = "sistema_compras"
-"""
-        
-        with open('secrets_local.toml', 'w') as f:
-            f.write(config_content)
-        print(f"\n✅ Arquivo secrets_local.toml criado!")
-        
+        # Instruções com variáveis de ambiente (sem secrets_local.toml)
+        print("\n✅ Configure sua aplicação com:")
+        print("   DATABASE_URL=postgresql://{u}:{p}@{h}:{pt}/sistema_compras".format(
+            u=working_config['user'], p=working_config['password'], h=working_config['host'], pt=working_config['port']
+        ))
+        print("   ou defina PGHOST, PGDATABASE, PGUSER, PGPASSWORD, PGPORT")
     else:
         print(f"\n❌ NENHUMA CONEXÃO FUNCIONOU")
         print(f"\n🔧 SOLUÇÕES POSSÍVEIS:")

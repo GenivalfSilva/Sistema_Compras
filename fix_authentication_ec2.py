@@ -7,7 +7,6 @@ Verifica e corrige incompatibilidades de hash de senha entre sistemas
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import hashlib
-import toml
 import os
 
 # Configurações
@@ -22,28 +21,25 @@ def hash_password_plain(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def get_db_connection():
-    """Conecta ao PostgreSQL local"""
+    """Conecta ao PostgreSQL local usando variáveis de ambiente."""
     try:
-        # Tenta carregar configuração do arquivo secrets_local.toml
-        config_path = 'secrets_local.toml'
-        if os.path.exists(config_path):
-            config = toml.load(config_path)
-            if 'postgres' in config:
-                pg = config['postgres']
-                conn = psycopg2.connect(
-                    host=pg["host"],
-                    database=pg["database"],
-                    user=pg["username"],
-                    password=pg["password"],
-                    port=int(pg.get("port", 5432)),
-                    cursor_factory=RealDictCursor,
-                )
-                return conn
-        
-        # Fallback para variáveis de ambiente
-        db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@localhost:5432/sistema_compras')
-        return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
-        
+        db_url = os.getenv('DATABASE_URL')
+        if db_url:
+            return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+        # Monta conexão a partir de PG* ou usa defaults locais
+        host = os.getenv('PGHOST', 'localhost')
+        database = os.getenv('PGDATABASE', 'sistema_compras')
+        user = os.getenv('PGUSER', 'postgres')
+        password = os.getenv('PGPASSWORD', 'postgres123')
+        port = int(os.getenv('PGPORT', '5432'))
+        return psycopg2.connect(
+            host=host,
+            database=database,
+            user=user,
+            password=password,
+            port=port,
+            cursor_factory=RealDictCursor,
+        )
     except Exception as e:
         print(f"❌ Erro ao conectar PostgreSQL: {e}")
         return None

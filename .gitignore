@@ -133,6 +133,7 @@ dmypy.json
 
 # Secrets
 secrets.toml
+secrets_local.toml
 
 # Dados do sistema (opcional - remova se quiser versionar os dados)
 compras_sla.db

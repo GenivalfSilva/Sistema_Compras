@@ -7,33 +7,28 @@ Executa migração segura do banco PostgreSQL local
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
-import toml
+ 
 
 def get_database_connection():
     """Obtém conexão com o banco PostgreSQL local"""
     try:
-        # Tenta carregar configuração do arquivo secrets_local.toml
-        config_path = 'secrets_local.toml'
-        if os.path.exists(config_path):
-            config = toml.load(config_path)
-            if 'postgres' in config:
-                pg = config['postgres']
-                conn = psycopg2.connect(
-                    host=pg["host"],
-                    database=pg["database"],
-                    user=pg["username"],
-                    password=pg["password"],
-                    port=int(pg.get("port", 5432)),
-                    cursor_factory=RealDictCursor,
-                )
-            elif 'database' in config and 'url' in config['database']:
-                conn = psycopg2.connect(config['database']['url'], cursor_factory=RealDictCursor)
-        else:
-            # Fallback para variáveis de ambiente
-            db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres123@localhost:5432/sistema_compras')
-            conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
-        
-        return conn
+        # Prioriza DATABASE_URL; caso ausente, usa variáveis PG*; por fim, fallback local seguro
+        db_url = os.getenv('DATABASE_URL')
+        if db_url:
+            return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+        host = os.getenv('PGHOST', 'localhost')
+        database = os.getenv('PGDATABASE', 'sistema_compras')
+        user = os.getenv('PGUSER', 'postgres')
+        password = os.getenv('PGPASSWORD', 'postgres123')
+        port = int(os.getenv('PGPORT', '5432'))
+        return psycopg2.connect(
+            host=host,
+            database=database,
+            user=user,
+            password=password,
+            port=port,
+            cursor_factory=RealDictCursor,
+        )
     except Exception as e:
         print(f"❌ Erro ao conectar com o banco: {e}")
         return None

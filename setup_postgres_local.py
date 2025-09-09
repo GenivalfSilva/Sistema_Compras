@@ -354,26 +354,16 @@ def main():
         print("❌ Falha no teste de conexão")
         sys.exit(1)
     
-    # Criar arquivo de configuração
-    config_content = f"""[postgres]
-host = "{config['host']}"
-database = "{config['database']}"
-username = "{config['username']}"
-password = "{config['password']}"
-port = {config['port']}
-
-[database]
-url = "postgresql://{config['username']}:{config['password']}@{config['host']}:{config['port']}/{config['database']}"
-"""
-    
-    with open('secrets_local.toml', 'w') as f:
-        f.write(config_content)
-    
-    print(f"\n✅ Arquivo de configuração 'secrets_local.toml' criado")
+    # Instruções de configuração por variáveis de ambiente (sem secrets_local.toml)
+    print("\n✅ Banco configurado. Configure as variáveis de ambiente para a aplicação:")
+    print("- DATABASE_URL=postgresql://{u}:{p}@{h}:{pt}/{db}".format(
+        u=config['username'], p=config['password'], h=config['host'], pt=config['port'], db=config['database']
+    ))
+    print("Ou configure PGHOST, PGDATABASE, PGUSER, PGPASSWORD, PGPORT conforme necessário.")
     print("\n🎯 Próximos passos:")
     print("1. Instalar PostgreSQL na EC2 se ainda não instalado")
     print("2. Executar este script na EC2: python setup_postgres_local.py")
-    print("3. Atualizar app.py para usar database_local.py")
+    print("3. Definir a variável de ambiente DATABASE_URL (ou PG*) no serviço que roda o Streamlit")
     print("4. Testar a aplicação localmente")
     
     print("\n✨ Setup concluído com sucesso!")
