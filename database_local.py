@@ -562,8 +562,17 @@ class LocalDatabaseManager:
             if session:
                 session_dict = dict(session)
                 expires_at = session_dict.get('expires_at')
-                if expires_at and datetime.datetime.now() < expires_at:
-                    return session_dict.get('username', '')
+                if expires_at:
+                    # Converte string para datetime se necessário (SQLite armazena como string)
+                    if isinstance(expires_at, str):
+                        try:
+                            expires_at = datetime.datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                        except:
+                            # Tenta formato alternativo
+                            expires_at = datetime.datetime.strptime(expires_at, '%Y-%m-%d %H:%M:%S.%f')
+                    
+                    if datetime.datetime.now() < expires_at:
+                        return session_dict.get('username', '')
             return ""
         except Exception as e:
             print(f"Erro ao validar sessão: {e}")
