@@ -1,5 +1,4 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import sqlite3
 import json
 import os
 import hashlib
@@ -10,47 +9,54 @@ import datetime
 SALT = "ziran_local_salt_v1"
 
 class LocalDatabaseManager:
-    """Gerenciador de banco PostgreSQL local para EC2"""
+    """Gerenciador de banco SQLite unificado para Windows e EC2"""
     
     def __init__(self):
-        self.db_type = 'postgres'
+        self.db_type = 'sqlite'
         self.db_available = False
         self.conn = None
         # Armazena a última mensagem de erro para diagnóstico na UI
         self.last_error = ""
-        self.setup_local_postgres()
+        self.connection_info = ""
+        self.db_path = "sistema_compras.db"
+        self.setup_sqlite_database()
     
-    def setup_local_postgres(self):
-        """Configura conexão PostgreSQL local"""
+    def setup_sqlite_database(self):
+        """Configura conexão SQLite unificada"""
         try:
-            # Preferir DATABASE_URL; caso ausente, usar PG*; por fim, fallback local seguro
-            db_url = os.getenv('DATABASE_URL')
-            if db_url:
-                self.conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
-            else:
-                host = os.getenv('PGHOST', 'localhost')
-                database = os.getenv('PGDATABASE', 'sistema_compras')
-                user = os.getenv('PGUSER', 'postgres')
-                password = os.getenv('PGPASSWORD', 'postgres123')
-                port = int(os.getenv('PGPORT', '5432'))
-                self.conn = psycopg2.connect(
-                    host=host,
-                    database=database,
-                    user=user,
-                    password=password,
-                    port=port,
-                    cursor_factory=RealDictCursor,
-                )
+            # Permite configurar caminho do banco via variável de ambiente
+            custom_db_path = os.getenv('SQLITE_DB_PATH')
+            if custom_db_path:
+                self.db_path = custom_db_path
             
-            if self.conn:
-                self.create_tables()
-                self.db_available = True
-                print("✅ PostgreSQL local conectado com sucesso")
-                
+            # Garante que o diretório existe
+            db_dir = os.path.dirname(os.path.abspath(self.db_path))
+            if db_dir and not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+            
+            # Conecta ao SQLite
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row  # Equivalente ao RealDictCursor
+            
+            # Habilita foreign keys
+            self.conn.execute('PRAGMA foreign_keys = ON')
+            
+            # Testa a conexão
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
+            
+            self.connection_info = f"SQLite: {os.path.abspath(self.db_path)}"
+            print(f"✅ SQLite conectado com sucesso: {os.path.abspath(self.db_path)}")
+            
+            self.create_tables()
+            self.db_available = True
+            
         except Exception as e:
-            print(f"❌ Erro ao conectar PostgreSQL local: {e}")
+            self.last_error = f"Erro ao conectar SQLite: {e}"
             self.db_available = False
-            self.conn = None
+            print(f"❌ Erro ao conectar SQLite: {e}")
+    
     
     def create_tables(self):
         """Cria todas as tabelas necessárias"""
@@ -59,20 +65,20 @@ class LocalDatabaseManager:
         # Tabela de usuários
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            nome VARCHAR(100) NOT NULL,
-            perfil VARCHAR(50) NOT NULL,
-            departamento VARCHAR(50) NOT NULL,
-            senha_hash VARCHAR(64) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            nome TEXT NOT NULL,
+            perfil TEXT NOT NULL,
+            departamento TEXT NOT NULL,
+            senha_hash TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
 
         # Tabela de solicitações com schema completo incluindo Requisição
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS solicitacoes (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             numero_solicitacao_estoque INTEGER UNIQUE NOT NULL,
             numero_requisicao INTEGER,
             numero_pedido_compras INTEGER,
@@ -96,8 +102,8 @@ class LocalDatabaseManager:
             numero_requisicao_interno TEXT,
             data_requisicao_interna TEXT,
             responsavel_suprimentos TEXT,
-            valor_estimado DOUBLE PRECISION,
-            valor_final DOUBLE PRECISION,
+            valor_estimado REAL,
+            valor_final REAL,
             fornecedor_recomendado TEXT,
             fornecedor_final TEXT,
             anexos_requisicao TEXT,
@@ -118,56 +124,56 @@ class LocalDatabaseManager:
             justificativa TEXT,
             observacoes_requisicao TEXT,
             observacoes_pedido_compras TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
 
         # Tabela de configurações
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS configuracoes (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             chave TEXT UNIQUE NOT NULL,
             valor TEXT NOT NULL,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
         # Tabela de produtos do catálogo
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS catalogo_produtos (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             codigo TEXT UNIQUE NOT NULL,
             nome TEXT NOT NULL,
             categoria TEXT,
             unidade TEXT NOT NULL,
-            ativo BOOLEAN DEFAULT TRUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ativo INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
         # Tabela de auditoria para ações do Admin
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS auditoria_admin (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario TEXT NOT NULL,
             acao TEXT NOT NULL,
             modulo TEXT NOT NULL,
             detalhes TEXT,
             solicitacao_id INTEGER,
             ip_address TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
         # Tabela de movimentações (histórico de mudanças)
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS movimentacoes (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             numero_solicitacao INTEGER NOT NULL,
             etapa_origem TEXT NOT NULL,
             etapa_destino TEXT NOT NULL,
             usuario TEXT NOT NULL,
-            data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            data_movimentacao DATETIME DEFAULT CURRENT_TIMESTAMP,
             observacoes TEXT
         )
         ''')
@@ -175,13 +181,13 @@ class LocalDatabaseManager:
         # Tabela de notificações
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS notificacoes (
-            id SERIAL PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             perfil TEXT NOT NULL,
             numero INTEGER NOT NULL,
             mensagem TEXT NOT NULL,
-            data TIMESTAMP NOT NULL,
-            lida BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            data DATETIME NOT NULL,
+            lida INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
 
@@ -190,8 +196,8 @@ class LocalDatabaseManager:
         CREATE TABLE IF NOT EXISTS sessoes (
             id TEXT PRIMARY KEY,
             username TEXT NOT NULL,
-            expires_at TIMESTAMP NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         ''')
 
@@ -203,7 +209,7 @@ class LocalDatabaseManager:
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessoes_expires ON sessoes(expires_at)')
 
         self.conn.commit()
-        print("✅ Todas as tabelas criadas com sucesso")
+        print(f"✅ Todas as tabelas criadas com sucesso ({self.connection_info})")
     
     def add_user(self, username: str, nome: str, perfil: str, departamento: str, senha_hash: str, is_hashed=False):
         """Adiciona usuário ao banco"""
@@ -218,7 +224,7 @@ class LocalDatabaseManager:
             
             sql = '''
             INSERT INTO usuarios (username, nome, perfil, departamento, senha_hash)
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES (?, ?, ?, ?, ?)
             '''
             cursor.execute(sql, (username, nome, perfil, departamento, senha_hash))
             self.conn.commit()
@@ -235,7 +241,7 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = 'SELECT * FROM usuarios WHERE username = %s'
+            sql = 'SELECT * FROM usuarios WHERE username = ?'
             cursor.execute(sql, (username,))
             user = cursor.fetchone()
             
@@ -274,7 +280,7 @@ class LocalDatabaseManager:
             cursor = self.conn.cursor()
             # Usa método consistente com app.py (com SALT)
             senha_hash = hashlib.sha256((SALT + nova_senha).encode("utf-8")).hexdigest()
-            sql = 'UPDATE usuarios SET senha_hash = %s WHERE username = %s'
+            sql = 'UPDATE usuarios SET senha_hash = ? WHERE username = ?'
             cursor.execute(sql, (senha_hash, username))
             self.conn.commit()
             return cursor.rowcount > 0
@@ -290,7 +296,7 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = 'SELECT valor FROM configuracoes WHERE chave = %s'
+            sql = 'SELECT valor FROM configuracoes WHERE chave = ?'
             cursor.execute(sql, (key,))
             result = cursor.fetchone()
             return result[0] if result else default
@@ -304,8 +310,7 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = '''INSERT INTO configuracoes (chave, valor) VALUES (%s, %s) 
-                    ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor'''
+            sql = '''INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES (?, ?)'''
             cursor.execute(sql, (key, value))
             self.conn.commit()
             return True
@@ -335,7 +340,7 @@ class LocalDatabaseManager:
                 responsavel_recebimento, observacoes_entrega, observacoes_finalizacao,
                 data_finalizacao, tipo_solicitacao, justificativa, responsavel_estoque,
                 observacoes_requisicao, data_requisicao, numero_requisicao, observacoes_pedido_compras
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
             
             values = (
@@ -433,10 +438,10 @@ class LocalDatabaseManager:
             
             for field, value in updates.items():
                 if field in ['anexos_requisicao', 'cotacoes', 'aprovacoes', 'historico_etapas', 'itens']:
-                    set_clauses.append(f"{field} = %s")
+                    set_clauses.append(f"{field} = ?")
                     values.append(json.dumps(value))
                 else:
-                    set_clauses.append(f"{field} = %s")
+                    set_clauses.append(f"{field} = ?")
                     values.append(value)
             
             values.append(numero_solicitacao)
@@ -444,7 +449,7 @@ class LocalDatabaseManager:
             sql = f'''
             UPDATE solicitacoes 
             SET {', '.join(set_clauses)}
-            WHERE numero_solicitacao_estoque = %s
+            WHERE numero_solicitacao_estoque = ?
             '''
             
             cursor.execute(sql, values)
@@ -462,7 +467,7 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = 'SELECT * FROM solicitacoes WHERE numero_solicitacao_estoque = %s'
+            sql = 'SELECT * FROM solicitacoes WHERE numero_solicitacao_estoque = ?'
             cursor.execute(sql, (numero,))
             row = cursor.fetchone()
             if row:
@@ -507,14 +512,14 @@ class LocalDatabaseManager:
             for produto in produtos:
                 sql = '''
                 INSERT INTO catalogo_produtos (codigo, nome, categoria, unidade, ativo)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (?, ?, ?, ?, ?)
                 '''
                 cursor.execute(sql, (
                     produto.get('codigo'),
                     produto.get('nome'),
                     produto.get('categoria', ''),
                     produto.get('unidade'),
-                    produto.get('ativo', True)
+                    1 if produto.get('ativo', True) else 0
                 ))
             
             self.conn.commit()
@@ -533,11 +538,8 @@ class LocalDatabaseManager:
             cursor = self.conn.cursor()
             expires_at = datetime.datetime.now() + datetime.timedelta(hours=24)
             
-            sql = '''INSERT INTO sessoes (id, username, expires_at) 
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (id) DO UPDATE SET 
-                    username = EXCLUDED.username,
-                    expires_at = EXCLUDED.expires_at'''
+            sql = '''INSERT OR REPLACE INTO sessoes (id, username, expires_at) 
+                    VALUES (?, ?, ?)'''
             cursor.execute(sql, (session_id, username, expires_at))
             self.conn.commit()
             return True
@@ -553,7 +555,7 @@ class LocalDatabaseManager:
             
         try:
             cursor = self.conn.cursor()
-            sql = 'SELECT * FROM sessoes WHERE id = %s'
+            sql = 'SELECT * FROM sessoes WHERE id = ?'
             cursor.execute(sql, (session_id,))
             session = cursor.fetchone()
             
@@ -620,7 +622,7 @@ class LocalDatabaseManager:
             cursor = self.conn.cursor()
             cursor.execute('''
                 INSERT INTO auditoria_admin (usuario, acao, modulo, detalhes, solicitacao_id, ip_address)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (?, ?, ?, ?, ?, ?)
             ''', (usuario, acao, modulo, detalhes, solicitacao_id, ip_address))
             self.conn.commit()
             return True
@@ -638,7 +640,7 @@ class LocalDatabaseManager:
             cursor.execute('''
                 SELECT * FROM auditoria_admin 
                 ORDER BY timestamp DESC 
-                LIMIT %s OFFSET %s
+                LIMIT ? OFFSET ?
             ''', (limit, offset))
             return cursor.fetchall()
         except Exception as e:
