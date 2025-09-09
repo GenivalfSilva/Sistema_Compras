@@ -72,6 +72,7 @@ def handle_profile_option(opcao: str, data: Dict, usuario: Dict, USE_DATABASE: b
         from .suprimentos_requisicao import requisicao_estoque
         requisicao_estoque(data, usuario, USE_DATABASE)
     elif opcao == "🔄 Mover para Próxima Etapa (Suprimentos)":
+        st.info("🔧 **Funcionalidade Administrativa**: Movimentação de solicitações entre etapas do processo.")
         from .suprimentos_mover import mover_etapa
         mover_etapa(data, usuario, USE_DATABASE)
     elif opcao == "📦 Catálogo de Produtos (Suprimentos)":

@@ -409,4 +409,95 @@ def catalogo_produtos(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                     st.warning("Nenhum produto para exportar.")
         
         with col2:
+            st.markdown("**📤 Importação Massiva**")
+            uploaded_file = st.file_uploader(
+                "Importar produtos de planilha",
+                type=['xlsx', 'xls', 'csv'],
+                help="Faça upload de uma planilha com colunas: codigo, nome, categoria, unidade, ativo"
+            )
+            
+            if uploaded_file is not None:
+                try:
+                    # Lê o arquivo
+                    if uploaded_file.name.endswith('.csv'):
+                        df_import = pd.read_csv(uploaded_file, encoding='utf-8-sig', sep=';')
+                    else:
+                        df_import = pd.read_excel(uploaded_file)
+                    
+                    # Verifica se tem as colunas necessárias
+                    colunas_necessarias = ['codigo', 'nome', 'categoria', 'unidade']
+                    colunas_faltantes = [col for col in colunas_necessarias if col not in df_import.columns]
+                    
+                    if colunas_faltantes:
+                        st.error(f"❌ Colunas faltantes na planilha: {', '.join(colunas_faltantes)}")
+                        st.info("📋 **Formato esperado:** codigo, nome, categoria, unidade, ativo (opcional)")
+                    else:
+                        st.success(f"✅ Planilha carregada: {len(df_import)} produtos encontrados")
+                        
+                        # Preview dos dados
+                        st.markdown("**👀 Preview dos dados:**")
+                        st.dataframe(df_import.head(), width='stretch')
+                        
+                        if st.button("📤 Importar Produtos", type="primary"):
+                            produtos_importados = 0
+                            produtos_erro = 0
+                            
+                            for _, row in df_import.iterrows():
+                                try:
+                                    codigo = str(row['codigo']).strip()
+                                    nome = str(row['nome']).strip()
+                                    categoria = str(row['categoria']).strip()
+                                    unidade = str(row['unidade']).strip()
+                                    ativo = bool(row.get('ativo', True))
+                                    
+                                    # Verifica se código já existe
+                                    if not any(p.get('codigo', '').lower() == codigo.lower() for p in catalogo):
+                                        novo_produto = {
+                                            "codigo": codigo,
+                                            "nome": nome,
+                                            "categoria": categoria,
+                                            "unidade": unidade,
+                                            "ativo": ativo,
+                                            "descricao": str(row.get('descricao', '')).strip(),
+                                            "data_cadastro": pd.Timestamp.now().isoformat(),
+                                            "usuario_cadastro": f"{usuario.get('nome', usuario.get('username'))} (Importação)"
+                                        }
+                                        
+                                        if USE_DATABASE:
+                                            try:
+                                                db = get_database()
+                                                if db.db_available:
+                                                    success = db.add_catalogo_produto(
+                                                        novo_produto['codigo'],
+                                                        novo_produto['nome'],
+                                                        novo_produto['categoria'],
+                                                        novo_produto['unidade'],
+                                                        novo_produto['ativo']
+                                                    )
+                                                    if success:
+                                                        produtos_importados += 1
+                                                    else:
+                                                        produtos_erro += 1
+                                            except:
+                                                produtos_erro += 1
+                                        else:
+                                            data.setdefault("configuracoes", {}).setdefault("catalogo_produtos", []).append(novo_produto)
+                                            produtos_importados += 1
+                                except:
+                                    produtos_erro += 1
+                            
+                            if not USE_DATABASE:
+                                save_data(data)
+                            
+                            if produtos_importados > 0:
+                                st.success(f"✅ {produtos_importados} produtos importados com sucesso!")
+                            if produtos_erro > 0:
+                                st.warning(f"⚠️ {produtos_erro} produtos com erro na importação")
+                            
+                            st.rerun()
+                            
+                except Exception as e:
+                    st.error(f"❌ Erro ao processar arquivo: {str(e)}")
+                    st.info("💡 **Dica:** Verifique se o arquivo está no formato correto (Excel ou CSV com separador ';')")
+            
             st.info("💡 **Dica:** Use códigos padronizados para facilitar a busca e organização.")

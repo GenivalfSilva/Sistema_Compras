@@ -14,11 +14,31 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     
     # Importa funções necessárias
     from app import save_data, add_notification, format_brl
-    from database_local import get_local_database as get_database
+    
+    # Importação condicional do banco
+    if USE_DATABASE:
+        try:
+            from database_local import get_local_database as get_database
+        except ImportError:
+            USE_DATABASE = False
+    
+    # Busca solicitações do banco ou JSON
+    solicitacoes_todas = []
+    if USE_DATABASE:
+        try:
+            db = get_database()
+            if db.db_available:
+                solicitacoes_todas = db.get_all_solicitacoes()
+        except Exception as e:
+            st.warning(f"⚠️ Erro ao acessar banco de dados: {e}")
+            USE_DATABASE = False
+    
+    if not USE_DATABASE:
+        solicitacoes_todas = data.get("solicitacoes", [])
     
     # Filtra solicitações que precisam de aprovação
     solicitacoes_aprovacao = []
-    for sol in data.get("solicitacoes", []):
+    for sol in solicitacoes_todas:
         if sol.get("status") == "Aguardando Aprovação" or sol.get("etapa_atual") == "Aguardando Aprovação":
             solicitacoes_aprovacao.append(sol)
     

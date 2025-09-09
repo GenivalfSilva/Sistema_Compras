@@ -14,7 +14,13 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
     
     # Importa funções necessárias
     from app import save_data, add_notification, format_brl
-    from database_local import get_local_database as get_database
+    
+    # Importação condicional do banco
+    if USE_DATABASE:
+        try:
+            from database_local import get_local_database as get_database
+        except ImportError:
+            USE_DATABASE = False
     
     # Define etapas do processo - Fluxo completo com Requisição
     etapas_processo = [
@@ -31,9 +37,23 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         "Pedido Finalizado"
     ]
     
+    # Busca solicitações do banco ou JSON
+    solicitacoes_todas = []
+    if USE_DATABASE:
+        try:
+            db = get_database()
+            if db.db_available:
+                solicitacoes_todas = db.get_all_solicitacoes()
+        except Exception as e:
+            st.warning(f"⚠️ Erro ao acessar banco de dados: {e}")
+            USE_DATABASE = False
+    
+    if not USE_DATABASE:
+        solicitacoes_todas = data.get("solicitacoes", [])
+    
     # Filtra solicitações que podem ser movidas pelo Suprimentos
     solicitacoes_moveveis = []
-    for sol in data.get("solicitacoes", []):
+    for sol in solicitacoes_todas:
         etapa_atual = sol.get("etapa_atual", sol.get("status", ""))
         # Suprimentos pode mover de: Requisição -> Suprimentos -> Em Cotação -> Pedido de Compras
         # E também: Compra feita -> Aguardando Entrega -> Pedido Finalizado
