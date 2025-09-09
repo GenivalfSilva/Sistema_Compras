@@ -83,7 +83,7 @@ def show_nova_requisicao():
                 if itens:
                     st.markdown("**📦 Itens Solicitados:**")
                     df_itens = pd.DataFrame(itens)
-                    st.dataframe(df_itens, use_container_width=True)
+                    st.dataframe(df_itens, width='stretch')
             except:
                 pass
         
@@ -264,7 +264,7 @@ def show_requisicoes_criadas():
         # Ordenar por número de requisição (mais recentes primeiro)
         df = df.sort_values('Requisição', ascending=False)
         
-        st.dataframe(df, use_container_width=True, height=400)
+        st.dataframe(df, width='stretch', height=400)
         
         # Botão para exportar
         if st.button("📊 Exportar Requisições"):

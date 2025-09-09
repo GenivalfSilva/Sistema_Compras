@@ -143,7 +143,7 @@ def show_admin_auditoria():
         # Mostrar tabela
         st.dataframe(
             df_display_renamed,
-            use_container_width=True,
+            width='stretch',
             hide_index=True
         )
         

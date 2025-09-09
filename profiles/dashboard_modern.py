@@ -190,7 +190,7 @@ def render_status_chart(solicitacoes):
         paper_bgcolor='rgba(0,0,0,0)'
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 def render_timeline_chart(solicitacoes):
     """Gráfico de linha temporal"""
@@ -254,7 +254,7 @@ def render_timeline_chart(solicitacoes):
         margin=dict(t=20, b=0, l=0, r=0)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 def render_priority_analysis(solicitacoes):
     """Análise por prioridade"""
@@ -293,7 +293,7 @@ def render_priority_analysis(solicitacoes):
         margin=dict(t=20, b=0, l=0, r=0)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 def render_department_analysis(solicitacoes):
     """Análise por departamento"""
@@ -331,7 +331,7 @@ def render_department_analysis(solicitacoes):
         margin=dict(t=20, b=0, l=0, r=0)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 def render_advanced_analytics(solicitacoes):
     """Seção de análises avançadas"""
@@ -396,7 +396,7 @@ def render_recent_requests_table(solicitacoes):
         df = pd.DataFrame(table_data)
         st.dataframe(
             df,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
             column_config={
                 "Status": st.column_config.TextColumn("Status", width="small"),

@@ -71,7 +71,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             try:
                 return st.experimental_data_editor(df, key=key, **kwargs)
             except Exception:
-                st.dataframe(df, use_container_width=True)
+                st.dataframe(df, width='stretch')
                 return df
     
     def save_data(data: Dict):
@@ -409,7 +409,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                     itens_editados_df = st.data_editor(
                         df_itens,
                         column_config=col_config,
-                        use_container_width=True,
+                        width='stretch',
                         hide_index=True,
                         key="editor_itens_lista"
                     )
@@ -419,9 +419,9 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                         if i < len(st.session_state.itens_solicitacao):
                             st.session_state.itens_solicitacao[i]['quantidade'] = row['Qtd']
                 else:
-                    st.dataframe(df_itens, use_container_width=True)
+                    st.dataframe(df_itens, width='stretch')
             except Exception:
-                st.dataframe(df_itens, use_container_width=True)
+                st.dataframe(df_itens, width='stretch')
             
             # Botões de ação
             col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
@@ -462,7 +462,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 })
             
             df_resumo = pd.DataFrame(resumo_itens)
-            st.dataframe(df_resumo, use_container_width=True, hide_index=True)
+            st.dataframe(df_resumo, width='stretch', hide_index=True)
             st.success(f"✅ {len(itens_struct)} item(ns) selecionado(s) para a solicitação")
         else:
             st.warning("⚠️ Nenhum item foi adicionado à solicitação. Use a seção acima para adicionar itens.")
@@ -515,7 +515,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         
         # Botão de submissão
         st.markdown('<br>', unsafe_allow_html=True)
-        submitted = st.form_submit_button("🚀 Criar Solicitação", use_container_width=True)
+        submitted = st.form_submit_button("🚀 Criar Solicitação", width='stretch')
     
     st.markdown(get_form_container_end(), unsafe_allow_html=True)
     
@@ -660,7 +660,7 @@ def nova_solicitacao(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             st.markdown(get_info_box_html(proximos_passos), unsafe_allow_html=True)
             
             # Botão para criar nova solicitação (limpa o formulário)
-            if st.button("🆕 Criar Nova Solicitação", type="primary", use_container_width=True):
+            if st.button("🆕 Criar Nova Solicitação", type="primary", width='stretch'):
                 # Limpa o estado do formulário
                 for key in list(st.session_state.keys()):
                     if key.startswith('nova_solicitacao') or key in ['form_submitted', 'itens_editor', 'itens_solicitacao', 'novo_produto', 'nova_quantidade']:

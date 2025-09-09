@@ -96,7 +96,7 @@ def historico_por_etapa(data: Dict, usuario: Dict):
             })
         
         df_historico = pd.DataFrame(historico_df)
-        st.dataframe(df_historico, use_container_width=True)
+        st.dataframe(df_historico, width='stretch')
         
         # Botões para download
         # Criar cópia do DataFrame para formatação de exportação

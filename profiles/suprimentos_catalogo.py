@@ -98,7 +98,7 @@ def catalogo_produtos(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 for p in catalogo_filtrado
             ])
             
-            st.dataframe(produtos_df, use_container_width=True)
+            st.dataframe(produtos_df, width='stretch')
             
             # Estatísticas
             st.markdown("#### 📊 Estatísticas do Catálogo")

@@ -90,7 +90,7 @@ def render_data_editor(df: pd.DataFrame, key: str = None, **kwargs) -> pd.DataFr
         try:
             return st.experimental_data_editor(df, key=key, **kwargs)  # type: ignore[attr-defined]
         except Exception:
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width='stretch')
             return df
 
 # Configurações de upload e anexos

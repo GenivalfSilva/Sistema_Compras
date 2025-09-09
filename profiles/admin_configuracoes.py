@@ -57,12 +57,12 @@ def configuracoes_sla(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                         step=1
                     )
                 },
-                use_container_width=True,
+                width='stretch',
                 key="sla_editor"
             )
         except:
             edited_df = df_sla
-            st.dataframe(df_sla, use_container_width=True)
+            st.dataframe(df_sla, width='stretch')
             st.warning("Editor não disponível. Dados em modo somente leitura.")
         
         if st.button("💾 Salvar Configurações SLA", type="primary"):

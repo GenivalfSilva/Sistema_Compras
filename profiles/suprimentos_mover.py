@@ -55,7 +55,7 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 {"Etapa": etapa, "Quantidade": qtd}
                 for etapa, qtd in resumo_etapas.items()
             ]).sort_values("Quantidade", ascending=False)
-            st.dataframe(resumo_df, use_container_width=True)
+            st.dataframe(resumo_df, width='stretch')
         
         return
     
@@ -383,7 +383,7 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
             ]).sort_values("Quantidade", ascending=False)
             
             # Exibe tabela
-            st.dataframe(resumo_df[["Etapa", "Quantidade", "Valor Total"]], use_container_width=True)
+            st.dataframe(resumo_df[["Etapa", "Quantidade", "Valor Total"]], width='stretch')
             
             # Métricas principais
             col1, col2, col3, col4 = st.columns(4)
@@ -441,6 +441,6 @@ def mover_etapa(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         if solicitacoes_atrasadas:
             st.warning(f"⚠️ {len(solicitacoes_atrasadas)} solicitação(ões) com possível atraso de SLA")
             atraso_df = pd.DataFrame(solicitacoes_atrasadas).sort_values("Atraso", ascending=False)
-            st.dataframe(atraso_df, use_container_width=True)
+            st.dataframe(atraso_df, width='stretch')
         else:
             st.success("✅ Nenhuma solicitação com atraso de SLA identificada.")

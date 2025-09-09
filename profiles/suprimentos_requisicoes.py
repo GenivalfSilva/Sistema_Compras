@@ -128,7 +128,7 @@ def show_requisicoes_pendentes():
                     if itens:
                         st.markdown("**📦 Itens Solicitados:**")
                         df_itens = pd.DataFrame(itens)
-                        st.dataframe(df_itens, use_container_width=True)
+                        st.dataframe(df_itens, width='stretch')
                 except:
                     pass
             
@@ -461,7 +461,7 @@ def show_dashboard_suprimentos():
         df_prioridade['_ordem'] = df_prioridade['Prioridade'].map(ordem_prioridade)
         df_prioridade = df_prioridade.sort_values('_ordem').drop('_ordem', axis=1)
         
-        st.dataframe(df_prioridade, use_container_width=True, height=400)
+        st.dataframe(df_prioridade, width='stretch', height=400)
         
         # Botão para exportar
         if st.button("📊 Exportar Dashboard"):

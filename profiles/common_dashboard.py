@@ -163,7 +163,7 @@ def dashboard_sla(data: Dict, usuario: Dict):
             })
         
         df_performance = pd.DataFrame(perf_df).sort_values('Total Solicitações', ascending=False)
-        st.dataframe(df_performance, use_container_width=True)
+        st.dataframe(df_performance, width='stretch')
     else:
         st.info("📊 Não há dados suficientes para análise de performance.")
     
@@ -196,6 +196,6 @@ def dashboard_sla(data: Dict, usuario: Dict):
     
     if solicitacoes_risco:
         df_risco = pd.DataFrame(solicitacoes_risco)
-        st.dataframe(df_risco, use_container_width=True)
+        st.dataframe(df_risco, width='stretch')
     else:
         st.success("✅ Nenhuma solicitação com SLA em risco!")

@@ -81,7 +81,7 @@ def gerenciar_cotacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 if itens:
                     st.markdown("**📦 Itens Solicitados:**")
                     df_itens = pd.DataFrame(itens)
-                    st.dataframe(df_itens, use_container_width=True)
+                    st.dataframe(df_itens, width='stretch')
             except:
                 pass
         
@@ -140,7 +140,7 @@ def mostrar_cotacoes_atuais(sol_dados: Dict):
                 st.markdown("**📦 Itens Cotados:**")
                 try:
                     df_itens = pd.DataFrame(cotacao['itens_cotacao'])
-                    st.dataframe(df_itens, use_container_width=True)
+                    st.dataframe(df_itens, width='stretch')
                 except:
                     pass
 
@@ -326,7 +326,7 @@ def comparar_selecionar_cotacao(sol_dados: Dict, data: Dict, usuario: Dict, USE_
         })
     
     df_comparacao = pd.DataFrame(dados_comparacao)
-    st.dataframe(df_comparacao, use_container_width=True)
+    st.dataframe(df_comparacao, width='stretch')
     
     # Seleção da melhor cotação
     st.markdown("#### 🎯 Selecionar Cotação Vencedora")

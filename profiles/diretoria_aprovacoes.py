@@ -46,7 +46,7 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
         
         if historico_aprovacoes:
             df_historico = pd.DataFrame(historico_aprovacoes[-10:])  # Últimas 10
-            st.dataframe(df_historico, use_container_width=True)
+            st.dataframe(df_historico, width='stretch')
         else:
             st.info("Nenhuma aprovação realizada ainda.")
         return
@@ -114,7 +114,7 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             "Valor Total": format_brl(item.get('valor_total')) if item.get('valor_total') else 'N/A'
                         })
                     if itens_df:
-                        st.dataframe(pd.DataFrame(itens_df), use_container_width=True)
+                        st.dataframe(pd.DataFrame(itens_df), width='stretch')
                 
                 # Cotações (se houver)
                 if sol.get('cotacoes'):
@@ -129,7 +129,7 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             "Observações": cot.get('observacoes', '')[:50] + '...' if len(cot.get('observacoes', '')) > 50 else cot.get('observacoes', '')
                         })
                     if cotacoes_df:
-                        st.dataframe(pd.DataFrame(cotacoes_df), use_container_width=True)
+                        st.dataframe(pd.DataFrame(cotacoes_df), width='stretch')
                         
                         # Recomendação do suprimentos
                         fornecedor_rec = sol.get('fornecedor_recomendado')
@@ -312,4 +312,4 @@ def aprovacoes(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 {"Departamento": k, "Valor": format_brl(v), "Valor_Num": v}
                 for k, v in valores_por_departamento.items()
             ]).sort_values("Valor_Num", ascending=False)
-            st.dataframe(dept_df[["Departamento", "Valor"]], use_container_width=True)
+            st.dataframe(dept_df[["Departamento", "Valor"]], width='stretch')

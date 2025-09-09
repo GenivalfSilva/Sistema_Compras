@@ -116,7 +116,7 @@ def gerenciar_usuarios(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                 df_filtrado = df_filtrado[mask]
             
             # Exibe tabela
-            st.dataframe(df_filtrado, use_container_width=True)
+            st.dataframe(df_filtrado, width='stretch')
             
             # Estatísticas
             st.markdown("#### 📊 Estatísticas")

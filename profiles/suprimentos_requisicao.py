@@ -80,7 +80,7 @@ def requisicao_estoque(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             "Valor Total": format_brl(item.get('valor_total')) if item.get('valor_total') else 'N/A'
                         })
                     if itens_df:
-                        st.dataframe(pd.DataFrame(itens_df), use_container_width=True)
+                        st.dataframe(pd.DataFrame(itens_df), width='stretch')
                 
                 # Anexos
                 if sol.get('anexos_requisicao'):
@@ -244,7 +244,7 @@ def requisicao_estoque(data: Dict, usuario: Dict, USE_DATABASE: bool = False):
                             "Data": cot.get('data_cotacao', 'N/A')[:10] if cot.get('data_cotacao') else 'N/A',
                             "Observações": cot.get('observacoes', '')[:30] + '...' if len(cot.get('observacoes', '')) > 30 else cot.get('observacoes', '')
                         })
-                    st.dataframe(pd.DataFrame(cotacoes_df), use_container_width=True)
+                    st.dataframe(pd.DataFrame(cotacoes_df), width='stretch')
                 
                 # Formulário para adicionar nova cotação
                 st.markdown("#### ➕ Adicionar Nova Cotação")
