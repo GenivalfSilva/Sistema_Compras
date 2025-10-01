@@ -1,0 +1,53 @@
+# Django Backend Requirements for Sistema de Compras V2
+# Core Django and REST Framework
+Django==4.2.16
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# JWT Authentication
+djangorestframework-simplejwt==5.3.0
+
+# Environment variables
+python-decouple==3.8
+
+# File handling and utilities (compatible with Python 3.13)
+Pillow==10.4.0
+python-magic-bin==0.4.14; sys_platform == "win32"
+
+# Excel/CSV processing (for data migration and reports)
+pandas==2.1.4
+openpyxl==3.1.5
+
+# PDF generation (for reports)
+reportlab==4.2.2
+
+# Email support
+django-anymail==10.3
+
+# Caching (Redis)
+redis==5.0.8
+django-redis==5.4.0
+
+# Celery for background tasks
+celery==5.3.6
+
+# API documentation
+drf-spectacular==0.27.2
+
+# Development and testing
+django-debug-toolbar==4.4.6
+pytest==8.3.2
+pytest-django==4.8.0
+factory-boy==3.3.1
+
+# Production server
+gunicorn==22.0.0
+
+# Monitoring and logging
+sentry-sdk==2.14.0
+
+# Security
+django-ratelimit==4.1.0
+
+# Filtering for APIs
+django-filter==24.3

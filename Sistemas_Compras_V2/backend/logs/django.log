@@ -1,0 +1,720 @@
+INFO 2025-09-15 16:51:39,432 autoreload 36500 8128 Watching for file changes with StatReloader
+WARNING 2025-09-15 16:51:47,885 log 36500 25336 Not Found: /api/auth/notifications/count/
+WARNING 2025-09-15 16:51:47,886 log 36500 5228 Not Found: /api/trading/dashboard/
+WARNING 2025-09-15 16:51:48,582 log 36500 5228 Not Found: /api/trading/operations/
+WARNING 2025-09-15 16:51:49,029 log 36500 17740 Not Found: /ws/trading/
+WARNING 2025-09-15 16:51:50,856 log 36500 23680 Not Found: /ws/trading/
+WARNING 2025-09-15 16:51:53,850 log 36500 21952 Not Found: /ws/trading/
+WARNING 2025-09-15 16:51:56,855 log 36500 28656 Not Found: /ws/trading/
+WARNING 2025-09-15 16:52:19,865 log 36500 29536 Not Found: /ws/trading/
+WARNING 2025-09-15 16:52:21,849 log 36500 11780 Not Found: /ws/trading/
+WARNING 2025-09-15 16:52:24,867 log 36500 15592 Not Found: /ws/trading/
+WARNING 2025-09-15 16:52:27,866 log 36500 34472 Not Found: /ws/trading/
+INFO 2025-09-15 16:52:42,775 autoreload 25184 23764 Watching for file changes with StatReloader
+WARNING 2025-09-15 16:52:47,871 log 25184 34616 Not Found: /api/auth/notifications/count/
+WARNING 2025-09-15 16:52:47,872 log 25184 19780 Not Found: /api/trading/dashboard/
+WARNING 2025-09-15 16:52:48,410 log 25184 19780 Not Found: /api/trading/operations/
+INFO 2025-09-15 16:53:43,514 autoreload 14376 34264 Watching for file changes with StatReloader
+WARNING 2025-09-15 16:53:48,470 log 14376 10928 Not Found: /api/trading/operations/
+WARNING 2025-09-15 16:53:56,850 log 14376 19940 Not Found: /ws/trading/
+WARNING 2025-09-15 16:53:58,846 log 14376 19972 Not Found: /ws/trading/
+WARNING 2025-09-15 16:54:02,848 log 14376 6852 Not Found: /ws/trading/
+WARNING 2025-09-15 16:54:07,843 log 14376 22796 Not Found: /ws/trading/
+INFO 2025-09-15 17:08:23,265 autoreload 6240 15604 Watching for file changes with StatReloader
+INFO 2025-09-15 17:25:41,518 autoreload 36216 22648 Watching for file changes with StatReloader
+INFO 2025-09-15 17:26:55,652 autoreload 11288 1852 Watching for file changes with StatReloader
+INFO 2025-09-15 17:27:14,861 autoreload 35100 5164 Watching for file changes with StatReloader
+WARNING 2025-09-15 17:27:39,548 log 35100 10864 Unauthorized: /api/usuarios/
+WARNING 2025-09-15 17:27:39,728 log 35100 10864 Unauthorized: /api/solicitacoes/
+WARNING 2025-09-15 17:27:40,762 log 35100 10864 Not Found: /api/catalogo/
+INFO 2025-09-15 17:28:27,056 autoreload 35100 5164 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\compras_project\urls.py changed, reloading.
+INFO 2025-09-15 17:28:27,665 autoreload 27044 25772 Watching for file changes with StatReloader
+INFO 2025-09-15 17:28:33,265 autoreload 27044 25772 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\compras_project\urls.py changed, reloading.
+INFO 2025-09-15 17:28:33,854 autoreload 14456 23448 Watching for file changes with StatReloader
+INFO 2025-09-15 17:28:41,464 autoreload 14456 23448 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\compras_project\settings.py changed, reloading.
+INFO 2025-09-15 17:28:42,117 autoreload 16972 4236 Watching for file changes with StatReloader
+WARNING 2025-09-15 17:28:48,951 log 16972 29976 Unauthorized: /api/catalogo/
+WARNING 2025-09-15 17:28:49,029 log 16972 29976 Unauthorized: /api/usuarios/
+WARNING 2025-09-15 17:28:49,089 log 16972 29976 Unauthorized: /api/solicitacoes/
+WARNING 2025-09-15 17:28:49,797 log 16972 29976 Unauthorized: /api/configuracoes/
+INFO 2025-09-15 17:29:37,546 autoreload 27712 33092 Watching for file changes with StatReloader
+INFO 2025-09-15 17:29:50,546 autoreload 1512 30992 Watching for file changes with StatReloader
+WARNING 2025-09-15 17:29:58,618 log 1512 9976 Unauthorized: /api/catalogo/
+WARNING 2025-09-15 17:29:58,700 log 1512 9976 Unauthorized: /api/usuarios/
+WARNING 2025-09-15 17:29:58,756 log 1512 9976 Unauthorized: /api/solicitacoes/
+WARNING 2025-09-15 17:29:59,729 log 1512 9976 Unauthorized: /api/configuracoes/
+INFO 2025-09-29 22:20:05,510 autoreload 11828 16976 Watching for file changes with StatReloader
+INFO 2025-09-30 10:40:03,876 autoreload 22340 3268 Watching for file changes with StatReloader
+INFO 2025-09-30 10:43:07,399 autoreload 20452 13744 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:43:14,813 log 20452 17204 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:44:53,330 log 20452 17204 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:44:57,351 autoreload 20452 13744 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\compras_project\settings.py changed, reloading.
+INFO 2025-09-30 10:44:58,223 autoreload 10532 368 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:44:59,266 log 10532 22256 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:45:13,220 autoreload 22292 12868 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:45:15,229 log 22292 20680 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:45:22,279 log 22292 20680 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:45:41,801 log 22292 20680 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:45:45,772 log 22292 20680 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:47:03,493 autoreload 22292 12868 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py changed, reloading.
+INFO 2025-09-30 10:47:04,148 autoreload 3600 4108 Watching for file changes with StatReloader
+INFO 2025-09-30 10:47:10,040 autoreload 23980 7700 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:47:11,315 log 23980 20792 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:47:15,693 log 23980 20792 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:47:31,003 autoreload 11696 14084 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:47:35,949 log 11696 23508 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:47:39,533 log 11696 23508 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:48:16,896 autoreload 11384 11760 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:48:35,491 log 11384 23060 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:48:41,008 log 11384 23060 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:48:51,971 log 11384 23060 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:48:54,085 log 11384 23060 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:48:57,784 log 11384 23060 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:49:34,567 autoreload 11384 11760 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py changed, reloading.
+INFO 2025-09-30 10:49:35,133 autoreload 21700 15340 Watching for file changes with StatReloader
+INFO 2025-09-30 10:50:02,711 autoreload 21700 15340 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py changed, reloading.
+INFO 2025-09-30 10:50:03,311 autoreload 16324 19168 Watching for file changes with StatReloader
+INFO 2025-09-30 10:50:55,151 autoreload 8268 18956 Watching for file changes with StatReloader
+WARNING 2025-09-30 10:51:03,346 log 8268 21656 Bad Request: /api/usuarios/auth/login/
+WARNING 2025-09-30 10:51:07,418 log 8268 21656 Bad Request: /api/usuarios/auth/login/
+INFO 2025-09-30 10:52:46,566 autoreload 22912 16428 Watching for file changes with StatReloader
+ERROR 2025-09-30 10:52:54,011 log 22912 18048 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 31, in post
+    tokens = get_tokens_for_user(user, request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 226, in get_tokens_for_user
+    HistoricoLogin.objects.create(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        usuario=user,
+        ^^^^^^^^^^^^^
+    ...<4 lines>...
+        sessao_id=request.session.session_key if request and hasattr(request, 'session') else ''
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 814, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 877, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1020, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1061, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+INFO 2025-09-30 10:53:43,806 autoreload 22912 16428 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\auditoria\models.py changed, reloading.
+INFO 2025-09-30 10:53:44,479 autoreload 24380 10328 Watching for file changes with StatReloader
+INFO 2025-09-30 11:00:24,810 autoreload 19288 15728 Watching for file changes with StatReloader
+ERROR 2025-09-30 11:00:41,064 log 19288 5012 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 34, in post
+    return Response(response_serializer.data, status=status.HTTP_200_OK)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 555, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 253, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 522, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\fields.py", line 1838, in to_representation
+    return method(value)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 211, in get_user
+    'nome': user.nome,
+            ^^^^^^^^^
+AttributeError: 'User' object has no attribute 'nome'
+INFO 2025-09-30 11:07:12,438 autoreload 10104 21660 Watching for file changes with StatReloader
+ERROR 2025-09-30 11:07:30,694 log 10104 8432 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: usuarios
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 29, in post
+    if serializer.is_valid():
+       ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 227, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 429, in run_validation
+    value = self.validate(value)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 56, in validate
+    user = authenticate(username=username, password=password)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\debug.py", line 42, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 77, in authenticate
+    user = backend.authenticate(request, **credentials)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\backends.py", line 21, in authenticate
+    v1_user = Usuario.objects.get(username=username)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: usuarios
+ERROR 2025-09-30 11:07:59,259 log 10104 8432 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such table: usuarios
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 29, in post
+    if serializer.is_valid():
+       ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 227, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 429, in run_validation
+    value = self.validate(value)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 56, in validate
+    user = authenticate(username=username, password=password)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\debug.py", line 42, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 77, in authenticate
+    user = backend.authenticate(request, **credentials)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\backends.py", line 21, in authenticate
+    v1_user = Usuario.objects.get(username=username)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such table: usuarios
+INFO 2025-10-01 09:36:24,902 autoreload 16468 17500 Watching for file changes with StatReloader
+INFO 2025-10-01 10:07:47,185 autoreload 12200 17396 Watching for file changes with StatReloader
+WARNING 2025-10-01 10:13:32,511 log 12200 9156 Bad Request: /api/usuarios/auth/logout/
+WARNING 2025-10-01 10:32:59,552 log 12200 11680 Bad Request: /api/usuarios/auth/logout/
+WARNING 2025-10-01 11:23:03,566 log 12200 22344 Bad Request: /api/usuarios/auth/logout/
+INFO 2025-10-01 11:23:10,124 autoreload 14676 4772 Watching for file changes with StatReloader
+WARNING 2025-10-01 12:01:07,515 log 14676 4312 Bad Request: /api/usuarios/auth/logout/
+WARNING 2025-10-01 12:01:41,968 log 14676 4312 Bad Request: /api/usuarios/auth/logout/
+WARNING 2025-10-01 12:01:55,066 log 14676 13424 Bad Request: /api/usuarios/auth/logout/
+ERROR 2025-10-01 12:02:01,767 log 14676 13424 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 29, in post
+    if serializer.is_valid():
+       ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 227, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 429, in run_validation
+    value = self.validate(value)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 74, in validate
+    HistoricoLogin.objects.create(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        username_tentativa=username,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        motivo_falha='Credenciais inválidas'
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 814, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 877, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1020, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1061, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+ERROR 2025-10-01 12:02:07,372 log 14676 13424 Internal Server Error: /api/usuarios/auth/login/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\views.py", line 29, in post
+    if serializer.is_valid():
+       ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 227, in is_valid
+    self._validated_data = self.run_validation(self.initial_data)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 429, in run_validation
+    value = self.validate(value)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\authentication.py", line 74, in validate
+    HistoricoLogin.objects.create(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        username_tentativa=username,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        motivo_falha='Credenciais inválidas'
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 814, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 877, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1020, in _save_table
+    results = self._do_insert(
+        cls._base_manager, using, fields, returning_fields, raw
+    )
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\base.py", line 1061, in _do_insert
+    return manager._insert(
+           ~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\db\backends\sqlite3\base.py", line 328, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.IntegrityError: NOT NULL constraint failed: auditoria_historicologin.sessao_id
+INFO 2025-10-01 12:07:17,556 autoreload 13968 20276 Watching for file changes with StatReloader
+ERROR 2025-10-01 12:07:27,919 log 13968 20988 Internal Server Error: /api/solicitacoes/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py", line 346, in dashboard_data
+    if user.is_admin():
+       ^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'is_admin'
+ERROR 2025-10-01 12:07:27,980 log 13968 17260 Internal Server Error: /api/solicitacoes/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\venv\Lib\site-packages\rest_framework\decorators.py", line 50, in handler
+    return func(*args, **kwargs)
+  File "C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py", line 346, in dashboard_data
+    if user.is_admin():
+       ^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'is_admin'
+INFO 2025-10-01 12:10:36,224 autoreload 13968 20276 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-01 12:10:36,982 autoreload 3756 8660 Watching for file changes with StatReloader
+INFO 2025-10-01 13:28:08,485 autoreload 7860 21636 Watching for file changes with StatReloader
+INFO 2025-10-01 13:31:46,624 autoreload 23384 19848 Watching for file changes with StatReloader
+INFO 2025-10-01 13:35:22,885 autoreload 23384 19848 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\permissions.py changed, reloading.
+INFO 2025-10-01 13:35:23,654 autoreload 22848 22736 Watching for file changes with StatReloader
+INFO 2025-10-01 13:36:31,851 autoreload 22848 22736 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\permissions.py changed, reloading.
+INFO 2025-10-01 13:36:32,405 autoreload 20968 21780 Watching for file changes with StatReloader
+INFO 2025-10-01 13:36:56,694 autoreload 20968 21780 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-01 13:36:57,280 autoreload 9468 6988 Watching for file changes with StatReloader
