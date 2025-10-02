@@ -53,7 +53,7 @@ export default function DetalheSolicitacaoPage() {
   };
 
   return (
-    <Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Typography variant="h4" gutterBottom>
         Solicitação #{data?.numero_solicitacao_estoque || id}
       </Typography>

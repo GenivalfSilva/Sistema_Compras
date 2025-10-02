@@ -1,6 +1,41 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, Button, Stack, TextField } from '@mui/material';
-import { SolicitacoesAPI, type SolicitacaoListItem } from '../../services/solicitacoes';
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Button,
+  Stack,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  InputAdornment,
+  Snackbar,
+  Alert,
+  IconButton,
+  Tooltip,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  Chip
+} from '@mui/material';
+import { SolicitacoesAPI, type SolicitacaoListItem, type Cotacao, type CotacaoPayload, type SolicitacaoDetail } from '../../services/solicitacoes';
+import AddIcon from '@mui/icons-material/Add';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 export default function CotacoesPage() {
   const [items, setItems] = useState<SolicitacaoListItem[]>([]);
@@ -28,7 +63,7 @@ export default function CotacoesPage() {
   };
 
   return (
-    <Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', pt: 1 }}>
       <Typography variant="h4" gutterBottom>
         Cotações (Suprimentos)
       </Typography>
@@ -36,8 +71,8 @@ export default function CotacoesPage() {
         <TextField size="small" label="Observações" value={obs} onChange={(e) => setObs(e.target.value)} />
         <Button variant="outlined" onClick={load} disabled={loading}>Atualizar</Button>
       </Stack>
-      <Paper>
-        <Table size="small">
+      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Table size="small" sx={{ tableLayout: 'fixed' }} stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>

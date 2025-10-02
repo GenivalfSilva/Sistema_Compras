@@ -28,7 +28,7 @@ export default function AprovacoesPage() {
   };
 
   return (
-    <Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', pt: 1 }}>
       <Typography variant="h4" gutterBottom>
         Aprovações (Diretoria)
       </Typography>
@@ -36,8 +36,8 @@ export default function AprovacoesPage() {
         <TextField size="small" label="Observações" value={obs} onChange={(e) => setObs(e.target.value)} />
         <Button variant="outlined" onClick={load} disabled={loading}>Atualizar</Button>
       </Stack>
-      <Paper>
-        <Table size="small">
+      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Table size="small" sx={{ tableLayout: 'fixed' }} stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import api from '../../services/api';
 import type { Tokens, UserProfile } from './types';
+import { authStorage } from './authStorage';
 
 export interface AuthState {
   tokens: Tokens | null;
@@ -10,9 +11,10 @@ export interface AuthState {
   error: string | null;
 }
 
+// Inicializa o estado com os dados do localStorage
 const initialState: AuthState = {
-  tokens: null,
-  profile: null,
+  tokens: authStorage.getTokens(),
+  profile: authStorage.getProfile(),
   loading: false,
   error: null,
 };
@@ -23,11 +25,16 @@ export const login = createAsyncThunk(
     try {
       const res = await api.post('/usuarios/auth/login/', payload);
       const tokens: Tokens = res.data;
-      localStorage.setItem('access', tokens.access);
-      if (tokens.refresh) localStorage.setItem('refresh', tokens.refresh);
+      
+      // Salva os tokens no localStorage usando authStorage
+      authStorage.saveTokens(tokens);
 
       const profRes = await api.get('/usuarios/auth/profile/');
       const profile: UserProfile = profRes.data;
+      
+      // Salva o perfil no localStorage
+      authStorage.saveProfile(profile);
+      
       return { tokens, profile };
     } catch (err: any) {
       return rejectWithValue(err?.response?.data || 'Login failed');
@@ -35,13 +42,45 @@ export const login = createAsyncThunk(
   }
 );
 
+export const fetchProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('Carregando perfil do usuário...');
+      const profRes = await api.get('/usuarios/auth/profile/');
+      const profile: UserProfile = profRes.data;
+      
+      // Salva o perfil no localStorage
+      authStorage.saveProfile(profile);
+      
+      return profile;
+    } catch (err: any) {
+      // Se o erro for 401, não é necessário mostrar mensagem de erro
+      // pois o interceptor já vai redirecionar para o login
+      if (err?.response?.status === 401) {
+        // Limpa os dados de autenticação
+        authStorage.clearAuth();
+        return rejectWithValue('Sessão expirada');
+      }
+      return rejectWithValue(err?.response?.data?.detail || err?.message || 'Falha ao carregar perfil');
+    }
+  }
+);
+
 export const logout = createAsyncThunk('auth/logout', async () => {
   try {
-    const refresh = localStorage.getItem('refresh');
-    await api.post('/usuarios/auth/logout/', { refresh });
-  } catch {}
-  localStorage.removeItem('access');
-  localStorage.removeItem('refresh');
+    // Obter o token de refresh do authStorage
+    const tokens = authStorage.getTokens();
+    if (tokens?.refresh) {
+      // Enviar o token no formato correto esperado pelo backend
+      await api.post('/usuarios/auth/logout/', { refresh_token: tokens.refresh });
+    }
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+  }
+  
+  // Limpa todos os dados de autenticação independentemente do resultado
+  authStorage.clearAuth();
 });
 
 const authSlice = createSlice({
@@ -50,9 +89,11 @@ const authSlice = createSlice({
   reducers: {
     setTokens(state, action: PayloadAction<Tokens | null>) {
       state.tokens = action.payload;
+      authStorage.saveTokens(action.payload);
     },
     setProfile(state, action: PayloadAction<UserProfile | null>) {
       state.profile = action.payload;
+      authStorage.saveProfile(action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -69,6 +110,19 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || action.error.message || 'Falha no login';
+      })
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload as UserProfile;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
+        // não derruba a sessão; apenas mantém o profile nulo
+        state.error = (action.payload as string) || action.error.message || null;
       })
       .addCase(logout.fulfilled, (state) => {
         state.tokens = null;

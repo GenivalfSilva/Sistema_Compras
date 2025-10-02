@@ -718,3 +718,5 @@ INFO 2025-10-01 13:36:31,851 autoreload 22848 22736 C:\Users\leonardo.fragoso\De
 INFO 2025-10-01 13:36:32,405 autoreload 20968 21780 Watching for file changes with StatReloader
 INFO 2025-10-01 13:36:56,694 autoreload 20968 21780 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
 INFO 2025-10-01 13:36:57,280 autoreload 9468 6988 Watching for file changes with StatReloader
+INFO 2025-10-01 16:54:52,995 autoreload 24364 1428 Watching for file changes with StatReloader
+INFO 2025-10-02 09:51:05,402 autoreload 6284 23756 Watching for file changes with StatReloader

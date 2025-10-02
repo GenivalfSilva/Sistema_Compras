@@ -1,9 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
+import { CssBaseline } from '@mui/material'
+import { ThemeProvider } from '@mui/material/styles'
+import theme from './theme'
 import ProtectedRoute from './routes/ProtectedRoute'
 import PermissionRoute from './routes/PermissionRoute'
 import MainLayout from './layouts/MainLayout'
 import LoginPage from './features/auth/components/LoginPage'
+import AuthInitializer from './features/auth/components/AuthInitializer'
+import SessionDebugger from './features/auth/components/SessionDebugger'
 import Dashboard from './pages/Dashboard'
 import SolicitacoesListPage from './pages/solicitacoes/ListPage'
 import NovaSolicitacaoPage from './pages/solicitacoes/NovaSolicitacaoPage'
@@ -17,10 +22,19 @@ import UsuariosPage from './pages/admin/UsuariosPage'
 import ConfiguracoesPage from './pages/admin/ConfiguracoesPage'
 import AuditoriaPage from './pages/admin/AuditoriaPage'
 import DashboardSolicitante from './pages/solicitacoes/DashboardSolicitante'
+import DashboardSuprimentos from './pages/suprimentos/DashboardSuprimentos'
 
 function App() {
   return (
-    <Routes>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {/* Inicializador de autenticação - carrega o perfil se houver token */}
+      <AuthInitializer />
+      
+      {/* Depurador de sessão - apenas em desenvolvimento */}
+      <SessionDebugger />
+      
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/"
@@ -31,8 +45,26 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        {/* Alias e redirecionamento para o painel específico do perfil */}
+        <Route path="dashboard" element={<Navigate to="/dashboard/solicitante" replace />} />
         <Route
           path="dashboard/solicitante"
+          element={
+            <PermissionRoute perm="can_create_solicitation">
+              <DashboardSolicitante />
+            </PermissionRoute>
+          }
+        />
+        <Route
+          path="dashboard/suprimentos"
+          element={
+            <PermissionRoute perm="can_manage_procurement">
+              <DashboardSuprimentos />
+            </PermissionRoute>
+          }
+        />
+        <Route
+          path="meu-painel"
           element={
             <PermissionRoute perm="can_create_solicitation">
               <DashboardSolicitante />
@@ -123,6 +155,7 @@ function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </ThemeProvider>
   )
 }
 

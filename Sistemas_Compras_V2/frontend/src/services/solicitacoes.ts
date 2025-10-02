@@ -17,6 +17,19 @@ export interface SolicitacaoListItem {
   departamento_display?: string;
 }
 
+export interface Cotacao {
+  id?: number;
+  solicitacao_id: number;
+  fornecedor: string;
+  valor_unitario: number;
+  valor_total: number;
+  prazo_entrega: number; // em dias
+  condicoes_pagamento: string;
+  observacoes?: string;
+  selecionada?: boolean;
+  data_cotacao?: string;
+}
+
 export interface SolicitacaoDetail extends SolicitacaoListItem {
   local_aplicacao?: string;
   observacoes?: string;
@@ -34,7 +47,7 @@ export interface SolicitacaoDetail extends SolicitacaoListItem {
   justificativa?: string;
   tipo_solicitacao?: string;
   itens?: any;
-  cotacoes?: any;
+  cotacoes?: Cotacao[];
   aprovacoes?: any;
   anexos_requisicao?: any;
   historico_etapas?: any;
@@ -85,6 +98,16 @@ export interface SolicitacoesDashboard {
   solicitacoes_recentes: SolicitacaoListItem[];
 }
 
+export interface CotacaoPayload {
+  fornecedor: string;
+  valor_unitario: number;
+  valor_total: number;
+  prazo_entrega: number;
+  condicoes_pagamento: string;
+  observacoes?: string;
+  selecionada?: boolean;
+}
+
 export const SolicitacoesAPI = {
   async list(params?: any) {
     const { data } = await api.get<any>('/solicitacoes/', { params });
@@ -115,6 +138,18 @@ export const SolicitacoesAPI = {
   },
   async approval(id: number, payload: ApprovalPayload) {
     const { data } = await api.post(`/solicitacoes/${id}/approval/`, payload);
+    return data;
+  },
+  async addCotacao(solicitacaoId: number, cotacao: CotacaoPayload) {
+    const { data } = await api.post(`/solicitacoes/${solicitacaoId}/cotacoes/`, cotacao);
+    return data;
+  },
+  async getCotacoes(solicitacaoId: number) {
+    const { data } = await api.get(`/solicitacoes/${solicitacaoId}/cotacoes/`);
+    return data as Cotacao[];
+  },
+  async selectCotacao(solicitacaoId: number, cotacaoId: number) {
+    const { data } = await api.post(`/solicitacoes/${solicitacaoId}/cotacoes/${cotacaoId}/select/`);
     return data;
   },
 };
