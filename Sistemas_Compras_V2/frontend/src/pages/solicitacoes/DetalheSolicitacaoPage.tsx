@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Stack, Chip, Button, TextField } from '@mui/material';
+import { Box, Typography, Paper, Stack, Chip, Button, TextField, Card } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { SolicitacoesAPI, type SolicitacaoDetail } from '../../services/solicitacoes';
@@ -54,9 +54,22 @@ export default function DetalheSolicitacaoPage() {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Typography variant="h4" gutterBottom>
-        Solicitação #{data?.numero_solicitacao_estoque || id}
-      </Typography>
+      <Card sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
+        <Box 
+          sx={{ 
+            p: 3, 
+            background: 'linear-gradient(45deg, #d91a2a 30%, #e14554 90%)',
+            color: 'white'
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h4" fontWeight="bold">Detalhe da Solicitação</Typography>
+              <Typography variant="subtitle1">Solicitação #{data?.numero_solicitacao_estoque || id}</Typography>
+            </Box>
+          </Stack>
+        </Box>
+      </Card>
       <Paper sx={{ p: 2 }}>
         {loading && <Typography>Carregando...</Typography>}
         <Stack spacing={2}>

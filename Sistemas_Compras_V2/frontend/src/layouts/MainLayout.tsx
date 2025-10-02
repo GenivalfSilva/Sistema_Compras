@@ -137,6 +137,12 @@ export default function MainLayout() {
       visible: perms?.can_manage_procurement 
     },
     { 
+      title: 'Dashboard Diretoria', 
+      path: '/diretoria/dashboard', 
+      icon: <DashboardIcon />, 
+      visible: perms?.can_approve 
+    },
+    { 
       title: 'Aprovações', 
       path: '/diretoria/aprovacoes', 
       icon: <ThumbUpIcon />, 
@@ -299,7 +305,7 @@ export default function MainLayout() {
           height: 'calc(100vh - 64px)',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflow: 'auto'
         }}
       >
         <Outlet />

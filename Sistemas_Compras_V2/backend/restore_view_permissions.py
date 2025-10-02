@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+"""
+Script to restore original permissions in SolicitacaoListCreateView
+"""
+
+import os
+import sys
+import re
+
+# File path
+views_file = os.path.join('apps', 'solicitacoes', 'views.py')
+
+# Read the file
+with open(views_file, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Define the pattern to match
+pattern = r'def get_permissions\(self\):\s+# Temporarily allow any authenticated user to create a solicitacao\s+return \[permissions\.IsAuthenticated\(\)\]'
+
+# Define the replacement
+replacement = """def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsSolicitanteOrAdmin()]
+        return [permissions.IsAuthenticated()]"""
+
+# Replace the pattern
+new_content = re.sub(pattern, replacement, content)
+
+# Write the file
+with open(views_file, 'w', encoding='utf-8') as f:
+    f.write(new_content)
+
+print("SolicitacaoListCreateView permissions restored successfully!")

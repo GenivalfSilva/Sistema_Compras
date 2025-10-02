@@ -157,7 +157,7 @@ export default function SolicitacoesListPage() {
         <Box 
           sx={{ 
             p: 3, 
-            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+            background: 'linear-gradient(45deg, #d91a2a 30%, #e14554 90%)',
             color: 'white'
           }}
         >

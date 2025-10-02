@@ -27,9 +27,11 @@ import {
   TableCell,
   TableBody
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SolicitacoesAPI, type CreateSolicitacaoPayload } from '../../services/solicitacoes';
+import { useAppSelector } from '../../app/hooks';
+import ErrorMessage from '../../components/ErrorMessage';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
@@ -38,6 +40,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 export default function NovaSolicitacaoPage() {
   const navigate = useNavigate();
+  const profile = useAppSelector((s) => s.auth.profile);
   const [activeStep, setActiveStep] = useState(0);
   const [form, setForm] = useState<CreateSolicitacaoPayload>({
     departamento: 'TI',
@@ -51,6 +54,16 @@ export default function NovaSolicitacaoPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{open:boolean; message:string; severity:'success'|'error'}>({open:false, message:'', severity:'success'});
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [permissionError, setPermissionError] = useState<string | null>(null);
+  
+  // Verificar se o usuário tem permissão para criar solicitações
+  useEffect(() => {
+    if (profile && (!profile.permissions || !profile.permissions.can_create_solicitation)) {
+      setPermissionError('Você não tem permissão para executar essa ação.');
+    } else {
+      setPermissionError(null);
+    }
+  }, [profile]);
 
   const onChange = (key: keyof CreateSolicitacaoPayload) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,7 +147,14 @@ export default function NovaSolicitacaoPage() {
       setToast({open:true, message:'Solicitação criada com sucesso!', severity:'success'});
       navigate(`/solicitacoes/${created.id}`);
     } catch (e: any) {
-      setToast({open:true, message: e?.response?.data?.detail || e?.message || 'Erro ao criar solicitação', severity:'error'});
+      const errorMessage = e?.response?.data?.detail || e?.message || 'Erro ao criar solicitação';
+      
+      // Verificar se é um erro de permissão
+      if (e?.response?.status === 403 || errorMessage.toLowerCase().includes('permission') || errorMessage.toLowerCase().includes('permissão')) {
+        setPermissionError('Você não tem permissão para executar essa ação.');
+      } else {
+        setToast({open:true, message: errorMessage, severity:'error'});
+      }
     } finally {
       setSaving(false);
     }
@@ -156,12 +176,19 @@ export default function NovaSolicitacaoPage() {
   ];
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+      {permissionError && (
+        <ErrorMessage 
+          message={permissionError} 
+          onClose={() => setPermissionError(null)} 
+        />
+      )}
+      
       <Card sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
         <Box 
           sx={{ 
             p: 3, 
-            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+            background: 'linear-gradient(45deg, #d91a2a 30%, #e14554 90%)',
             color: 'white'
           }}
         >
@@ -185,15 +212,15 @@ export default function NovaSolicitacaoPage() {
         {saving && <LinearProgress />}
       </Card>
 
-      <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
-        <CardContent>
-          <Stepper activeStep={activeStep} orientation="vertical">
+      <Card sx={{ borderRadius: 2, overflow: 'visible' }}>
+        <CardContent sx={{ overflow: 'visible' }}>
+          <Stepper activeStep={activeStep} orientation="vertical" sx={{ overflow: 'visible' }}>
             {steps.map((step, index) => (
               <Step key={step.label}>
                 <StepLabel>
                   <Typography variant="subtitle1" fontWeight="bold">{step.label}</Typography>
                 </StepLabel>
-                <StepContent>
+                <StepContent sx={{ overflow: 'visible' }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {step.description}
                   </Typography>
@@ -279,7 +306,7 @@ export default function NovaSolicitacaoPage() {
                   
                   {index === 1 && (
                     <Box>
-                      <Card variant="outlined" sx={{ mb: 2 }}>
+                      <Card variant="outlined" sx={{ mb: 2, overflow: 'visible' }}>
                         <CardHeader 
                           title="Itens Solicitados" 
                           titleTypographyProps={{ variant: 'h6' }}
@@ -296,7 +323,7 @@ export default function NovaSolicitacaoPage() {
                           }
                         />
                         <Divider />
-                        <CardContent>
+                        <CardContent sx={{ overflow: 'visible' }}>
                           {(form.itens as any[]).length === 0 ? (
                             <Box sx={{ textAlign: 'center', py: 3 }}>
                               <ShoppingCartIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
@@ -307,7 +334,7 @@ export default function NovaSolicitacaoPage() {
                           ) : (
                             <Stack spacing={2}>
                               {(form.itens as any[]).map((item, index) => (
-                                <Card key={index} variant="outlined" sx={{ p: 2 }}>
+                                <Card key={index} variant="outlined" sx={{ p: 2, overflow: 'visible' }}>
                                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '2fr 4fr 2fr 2fr 2fr' }, gap: 2, alignItems: 'center' }}>
                                     <TextField 
                                       label="Código" 
@@ -358,10 +385,10 @@ export default function NovaSolicitacaoPage() {
                   
                   {index === 2 && (
                     <Box>
-                      <Card variant="outlined" sx={{ mb: 3 }}>
+                      <Card variant="outlined" sx={{ mb: 3, overflow: 'visible' }}>
                         <CardHeader title="Resumo da Solicitação" titleTypographyProps={{ variant: 'h6' }} />
                         <Divider />
-                        <CardContent>
+                        <CardContent sx={{ overflow: 'visible' }}>
                           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                             <Box>
                               <Typography variant="subtitle2" color="text.secondary">Departamento</Typography>
@@ -395,19 +422,19 @@ export default function NovaSolicitacaoPage() {
                         </CardContent>
                       </Card>
                       
-                      <Card variant="outlined">
+                      <Card variant="outlined" sx={{ overflow: 'visible' }}>
                         <CardHeader 
                           title={`Itens (${(form.itens as any[]).length})`} 
                           titleTypographyProps={{ variant: 'h6' }} 
                         />
                         <Divider />
-                        <CardContent>
+                        <CardContent sx={{ overflow: 'visible' }}>
                           {(form.itens as any[]).length === 0 ? (
                             <Typography variant="body2" color="text.secondary" align="center">
                               Nenhum item adicionado.
                             </Typography>
                           ) : (
-                            <Box sx={{ overflowX: 'auto' }}>
+                            <Box sx={{ overflowX: 'auto', overflowY: 'visible' }}>
                               <Table size="small">
                                 <TableHead>
                                   <TableRow>

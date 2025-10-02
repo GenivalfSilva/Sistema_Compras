@@ -47,13 +47,32 @@ class IsSolicitanteOrAdmin(permissions.BasePermission):
     """
     
     def has_permission(self, request, view):
+        import logging
+        logger = logging.getLogger('django')
+        
+        logger.info(f"Checking permission for user: {getattr(request.user, 'username', 'AnonymousUser')}")
+        
         if not request.user.is_authenticated:
+            logger.warning("User is not authenticated")
             return False
         
-        return (
-            getattr(request.user, 'can_create_solicitation', lambda: False)() or 
-            getattr(request.user, 'is_admin', lambda: False)()
-        )
+        # Check both method names for compatibility
+        can_create_solicitation = getattr(request.user, 'can_create_solicitation', lambda: False)()
+        can_create_solicitacao = getattr(request.user, 'can_create_solicitacao', lambda: False)()
+        is_admin = getattr(request.user, 'is_admin', lambda: False)()
+        
+        logger.info(f"Permission check: can_create_solicitation={can_create_solicitation}, "
+                   f"can_create_solicitacao={can_create_solicitacao}, is_admin={is_admin}")
+        
+        # Try to get V1 user info for debugging
+        try:
+            from apps.usuarios.models import Usuario
+            v1_user = Usuario.objects.get(username=request.user.username)
+            logger.info(f"V1 user found: {v1_user.nome}, perfil={v1_user.perfil}")
+        except Exception as e:
+            logger.warning(f"Could not get V1 user: {str(e)}")
+        
+        return can_create_solicitation or can_create_solicitacao or is_admin
 
 
 class IsEstoqueOrAdmin(permissions.BasePermission):

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Compras V2 - API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow: auto;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Compras V2 - API Test</h1>
+        
+        <div class="card">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" value="Leonardo.Fragoso">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="Teste123">
+            </div>
+            <button id="loginBtn">Login</button>
+            <div id="loginResult"></div>
+        </div>
+        
+        <div class="card">
+            <h2>Listar Solicitações</h2>
+            <button id="listBtn">Listar Solicitações</button>
+            <pre id="listResult">Resultado aparecerá aqui...</pre>
+        </div>
+        
+        <div class="card">
+            <h2>Nova Solicitação</h2>
+            <div class="form-group">
+                <label for="departamento">Departamento:</label>
+                <select id="departamento">
+                    <option value="TI">TI</option>
+                    <option value="Manutenção">Manutenção</option>
+                    <option value="RH">RH</option>
+                    <option value="Financeiro">Financeiro</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Operações">Operações</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="prioridade">Prioridade:</label>
+                <select id="prioridade">
+                    <option value="Normal">Normal</option>
+                    <option value="Baixa">Baixa</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Urgente">Urgente</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <textarea id="descricao" rows="3">Necessário 5 cabos HDMI 2m para nova sala de reuniões</textarea>
+            </div>
+            <div class="form-group">
+                <label for="local">Local de Aplicação:</label>
+                <input type="text" id="local" value="Sala de Reuniões - 3º Andar">
+            </div>
+            <div class="form-group">
+                <label for="observacoes">Observações:</label>
+                <textarea id="observacoes" rows="2">Teste via frontend</textarea>
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor Estimado:</label>
+                <input type="number" id="valor" value="150.00">
+            </div>
+            <button id="createBtn">Criar Solicitação</button>
+            <pre id="createResult">Resultado aparecerá aqui...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Token storage
+        let token = '';
+        
+        // API base URL
+        const API_URL = 'http://localhost:8000/api';
+        
+        // Login function
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/usuarios/auth/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.access;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<p style="color: green;">Login bem-sucedido! Token: ${token.substring(0, 20)}...</p>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<p style="color: red;">Erro: ${data.detail || 'Falha no login'}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<p style="color: red;">Erro: ${error.message}</p>`;
+            }
+        });
+        
+        // List solicitações function
+        document.getElementById('listBtn').addEventListener('click', async () => {
+            if (!token) {
+                document.getElementById('listResult').textContent = 'Faça login primeiro!';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/solicitacoes/`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                document.getElementById('listResult').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('listResult').textContent = `Erro: ${error.message}`;
+            }
+        });
+        
+        // Create solicitação function
+        document.getElementById('createBtn').addEventListener('click', async () => {
+            if (!token) {
+                document.getElementById('createResult').textContent = 'Faça login primeiro!';
+                return;
+            }
+            
+            const solicitacaoData = {
+                departamento: document.getElementById('departamento').value,
+                prioridade: document.getElementById('prioridade').value,
+                descricao: document.getElementById('descricao').value,
+                local_aplicacao: document.getElementById('local').value,
+                observacoes: document.getElementById('observacoes').value,
+                valor_estimado: parseFloat(document.getElementById('valor').value),
+                itens: [
+                    {
+                        nome: 'Cabo HDMI',
+                        quantidade: 5,
+                        unidade: 'UN',
+                        descricao: 'Cabo HDMI 2m'
+                    }
+                ]
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/solicitacoes/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(solicitacaoData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('createResult').textContent = JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('createResult').textContent = 
+                        `Erro: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                document.getElementById('createResult').textContent = `Erro: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

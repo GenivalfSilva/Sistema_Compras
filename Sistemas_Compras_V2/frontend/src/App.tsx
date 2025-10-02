@@ -8,7 +8,6 @@ import PermissionRoute from './routes/PermissionRoute'
 import MainLayout from './layouts/MainLayout'
 import LoginPage from './features/auth/components/LoginPage'
 import AuthInitializer from './features/auth/components/AuthInitializer'
-import SessionDebugger from './features/auth/components/SessionDebugger'
 import Dashboard from './pages/Dashboard'
 import SolicitacoesListPage from './pages/solicitacoes/ListPage'
 import NovaSolicitacaoPage from './pages/solicitacoes/NovaSolicitacaoPage'
@@ -17,12 +16,13 @@ import RequisicoesPage from './pages/estoque/RequisicoesPage'
 import ProcessarRequisicoesPage from './pages/suprimentos/ProcessarRequisicoesPage'
 import CotacoesPage from './pages/suprimentos/CotacoesPage'
 import PedidosPage from './pages/suprimentos/PedidosPage'
-import AprovacoesPage from './pages/diretoria/AprovacoesPage'
-import UsuariosPage from './pages/admin/UsuariosPage'
-import ConfiguracoesPage from './pages/admin/ConfiguracoesPage'
-import AuditoriaPage from './pages/admin/AuditoriaPage'
-import DashboardSolicitante from './pages/solicitacoes/DashboardSolicitante'
-import DashboardSuprimentos from './pages/suprimentos/DashboardSuprimentos'
+import AprovacoesPage from './pages/diretoria/AprovacoesPage';
+import DashboardDiretoria from './pages/diretoria/DashboardDiretoria';
+import UsuariosPage from './pages/admin/UsuariosPage';
+import ConfiguracoesPage from './pages/admin/ConfiguracoesPage';
+import AuditoriaPage from './pages/admin/AuditoriaPage';
+import DashboardSolicitante from './pages/solicitacoes/DashboardSolicitante';
+import DashboardSuprimentos from './pages/suprimentos/DashboardSuprimentos';
 
 function App() {
   return (
@@ -30,9 +30,6 @@ function App() {
       <CssBaseline />
       {/* Inicializador de autenticação - carrega o perfil se houver token */}
       <AuthInitializer />
-      
-      {/* Depurador de sessão - apenas em desenvolvimento */}
-      <SessionDebugger />
       
       <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -60,6 +57,14 @@ function App() {
           element={
             <PermissionRoute perm="can_manage_procurement">
               <DashboardSuprimentos />
+            </PermissionRoute>
+          }
+        />
+        <Route
+          path="dashboard/diretoria"
+          element={
+            <PermissionRoute perm="can_approve">
+              <DashboardDiretoria />
             </PermissionRoute>
           }
         />
@@ -117,6 +122,14 @@ function App() {
           element={
             <PermissionRoute perm="can_manage_procurement">
               <PedidosPage />
+            </PermissionRoute>
+          }
+        />
+        <Route
+          path="diretoria/dashboard"
+          element={
+            <PermissionRoute perm="can_approve">
+              <DashboardDiretoria />
             </PermissionRoute>
           }
         />

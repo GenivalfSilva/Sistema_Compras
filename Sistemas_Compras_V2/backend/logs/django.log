@@ -720,3 +720,74 @@ INFO 2025-10-01 13:36:56,694 autoreload 20968 21780 C:\Users\leonardo.fragoso\De
 INFO 2025-10-01 13:36:57,280 autoreload 9468 6988 Watching for file changes with StatReloader
 INFO 2025-10-01 16:54:52,995 autoreload 24364 1428 Watching for file changes with StatReloader
 INFO 2025-10-02 09:51:05,402 autoreload 6284 23756 Watching for file changes with StatReloader
+WARNING 2025-10-02 09:55:14,803 log 6284 24724 Bad Request: /api/usuarios/auth/logout/
+WARNING 2025-10-02 11:14:49,934 log 6284 7100 Forbidden: /api/solicitacoes/
+WARNING 2025-10-02 11:20:46,815 log 6284 17688 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:21:05,278 autoreload 15104 17176 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:21:06,842 log 15104 26620 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:21:55,903 autoreload 13272 2424 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:22:10,806 log 13272 23032 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:26:19,858 autoreload 13272 2424 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\__init__.py changed, reloading.
+INFO 2025-10-02 11:26:20,542 autoreload 25724 17088 Watching for file changes with StatReloader
+INFO 2025-10-02 11:27:11,666 autoreload 25724 17088 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\apps.py changed, reloading.
+INFO 2025-10-02 11:27:12,372 autoreload 14796 24352 Watching for file changes with StatReloader
+INFO 2025-10-02 11:38:24,961 autoreload 11540 19336 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:38:55,756 log 11540 12348 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:41:32,568 autoreload 11540 19336 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:41:33,215 autoreload 7272 24708 Watching for file changes with StatReloader
+INFO 2025-10-02 11:41:39,294 autoreload 3312 13272 Watching for file changes with StatReloader
+INFO 2025-10-02 11:42:05,001 autoreload 23732 25324 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:42:41,325 log 23732 25332 Forbidden: /api/solicitacoes/
+WARNING 2025-10-02 11:42:45,840 log 23732 25332 Forbidden: /api/solicitacoes/
+WARNING 2025-10-02 11:43:00,797 log 23732 25332 Forbidden: /api/solicitacoes/
+WARNING 2025-10-02 11:43:06,790 log 23732 2364 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:43:29,598 autoreload 23732 25324 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\permissions.py changed, reloading.
+INFO 2025-10-02 11:43:30,397 autoreload 7348 1832 Watching for file changes with StatReloader
+INFO 2025-10-02 11:43:37,873 autoreload 15120 12624 Watching for file changes with StatReloader
+INFO 2025-10-02 11:43:53,411 permissions 15120 13004 Checking permission for user: Leonardo.Fragoso
+INFO 2025-10-02 11:43:53,412 permissions 15120 13004 Permission check: can_create_solicitation=False, can_create_solicitacao=False, is_admin=False
+INFO 2025-10-02 11:43:53,413 permissions 15120 13004 V1 user found: Leonardo Fragoso, perfil=Solicitante
+WARNING 2025-10-02 11:43:53,414 log 15120 13004 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:44:06,812 autoreload 15120 12624 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:44:07,545 autoreload 24740 13696 Watching for file changes with StatReloader
+INFO 2025-10-02 11:44:15,545 autoreload 24740 13696 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:44:16,428 autoreload 26832 15412 Watching for file changes with StatReloader
+INFO 2025-10-02 11:44:23,632 autoreload 4832 22664 Watching for file changes with StatReloader
+INFO 2025-10-02 11:44:35,054 permissions 4832 27324 Checking permission for user: Leonardo.Fragoso
+INFO 2025-10-02 11:44:35,055 permissions 4832 27324 Permission check: can_create_solicitation=False, can_create_solicitacao=False, is_admin=False
+INFO 2025-10-02 11:44:35,056 permissions 4832 27324 V1 user found: Leonardo Fragoso, perfil=Solicitante
+WARNING 2025-10-02 11:44:35,057 log 4832 27324 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:45:38,017 autoreload 4832 22664 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:45:38,998 autoreload 7032 2540 Watching for file changes with StatReloader
+INFO 2025-10-02 11:45:46,006 autoreload 5296 4828 Watching for file changes with StatReloader
+INFO 2025-10-02 11:47:31,465 autoreload 5296 4828 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:47:32,423 autoreload 7392 26992 Watching for file changes with StatReloader
+INFO 2025-10-02 11:48:05,719 autoreload 7392 26992 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:48:06,810 autoreload 10684 6728 Watching for file changes with StatReloader
+INFO 2025-10-02 11:48:19,345 autoreload 10684 6728 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:48:20,223 autoreload 14044 7324 Watching for file changes with StatReloader
+INFO 2025-10-02 11:48:28,412 autoreload 14044 7324 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:48:29,355 autoreload 12416 17184 Watching for file changes with StatReloader
+INFO 2025-10-02 11:48:43,332 autoreload 27616 7244 Watching for file changes with StatReloader
+INFO 2025-10-02 11:48:59,968 autoreload 16580 1664 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:10,484 autoreload 27616 7244 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:50:11,209 autoreload 16580 1664 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\usuarios\middleware.py changed, reloading.
+INFO 2025-10-02 11:50:11,740 autoreload 16976 13336 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:12,537 autoreload 26928 2056 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:17,573 autoreload 8084 14260 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:34,726 permissions 16976 17572 Checking permission for user: Leonardo.Fragoso
+INFO 2025-10-02 11:50:34,727 permissions 16976 17572 Permission check: can_create_solicitation=False, can_create_solicitacao=False, is_admin=False
+INFO 2025-10-02 11:50:34,730 permissions 16976 17572 V1 user found: Leonardo Fragoso, perfil=Solicitante
+WARNING 2025-10-02 11:50:34,732 log 16976 17572 Forbidden: /api/solicitacoes/
+INFO 2025-10-02 11:50:56,374 autoreload 26928 2056 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:50:56,803 autoreload 8084 14260 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:50:56,893 autoreload 16976 13336 C:\Users\leonardo.fragoso\Desktop\Projetos\Sistema_Compras\Sistemas_Compras_V2\backend\apps\solicitacoes\views.py changed, reloading.
+INFO 2025-10-02 11:50:57,949 autoreload 25980 19768 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:58,447 autoreload 8376 14776 Watching for file changes with StatReloader
+INFO 2025-10-02 11:50:58,620 autoreload 18692 25092 Watching for file changes with StatReloader
+INFO 2025-10-02 11:51:20,829 autoreload 25568 27540 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:51:45,307 log 25980 26632 Not Found: /api/solicitacoes/NaN/
+WARNING 2025-10-02 11:51:45,320 log 25980 26632 Not Found: /api/solicitacoes/NaN/
+INFO 2025-10-02 11:52:50,497 autoreload 14716 6260 Watching for file changes with StatReloader
+WARNING 2025-10-02 11:53:13,029 log 14716 23560 Not Found: /api/solicitacoes/NaN/
+WARNING 2025-10-02 11:53:13,038 log 14716 12480 Not Found: /api/solicitacoes/NaN/

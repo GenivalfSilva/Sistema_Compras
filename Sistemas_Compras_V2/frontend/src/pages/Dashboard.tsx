@@ -1,29 +1,24 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const profile = useAppSelector((s) => s.auth.profile);
-  
-  // Redireciona para o dashboard específico do perfil
-  if (profile?.perfil === 'Solicitante' || profile?.permissions?.can_create_solicitation) {
-    return <Navigate to="/dashboard/solicitante" replace />;
-  }
-  
-  // Redireciona para o dashboard de suprimentos
-  if (profile?.perfil === 'Suprimentos' || profile?.permissions?.can_manage_procurement) {
-    return <Navigate to="/dashboard/suprimentos" replace />;
-  }
-  
-  // Redireciona para o dashboard de diretoria
-  if (profile?.perfil === 'Diretoria' || profile?.permissions?.can_approve) {
-    return <Navigate to="/diretoria/aprovacoes" replace />;
-  }
-  
-  // Redireciona para o dashboard de estoque
-  if (profile?.perfil === 'Estoque' || profile?.permissions?.can_manage_stock) {
-    return <Navigate to="/estoque/requisicoes" replace />;
-  }
-  
-  // Padrão: redireciona para o dashboard do solicitante
-  return <Navigate to="/dashboard/solicitante" replace />;
+  const perms = profile?.permissions;
+
+  useEffect(() => {
+    // Redirecionar para o dashboard específico do perfil
+    if (perms?.can_approve) {
+      navigate('/dashboard/diretoria');
+    } else if (perms?.can_manage_procurement) {
+      navigate('/dashboard/suprimentos');
+    } else if (perms?.can_create_solicitation) {
+      navigate('/dashboard/solicitante');
+    } else {
+      navigate('/solicitacoes');
+    }
+  }, [navigate, perms]);
+
+  return null;
 }

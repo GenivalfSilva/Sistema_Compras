@@ -1,6 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, Button, Stack, TextField } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  Table, 
+  TableHead, 
+  TableRow, 
+  TableCell, 
+  TableBody, 
+  Button, 
+  Stack, 
+  TextField,
+  Card,
+  IconButton,
+  Tooltip
+} from '@mui/material';
 import { SolicitacoesAPI, type SolicitacaoListItem } from '../../services/solicitacoes';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 export default function AprovacoesPage() {
   const [items, setItems] = useState<SolicitacaoListItem[]>([]);
@@ -29,12 +47,29 @@ export default function AprovacoesPage() {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', pt: 1 }}>
-      <Typography variant="h4" gutterBottom>
-        Aprovações (Diretoria)
-      </Typography>
+      <Card sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }}>
+        <Box 
+          sx={{ 
+            p: 3, 
+            background: 'linear-gradient(45deg, #d91a2a 30%, #e14554 90%)',
+            color: 'white'
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h4" fontWeight="bold">Aprovações</Typography>
+              <Typography variant="subtitle1">Aprovação de pedidos de compras pela Diretoria</Typography>
+            </Box>
+            <Tooltip title="Atualizar lista">
+              <IconButton color="inherit" onClick={load} disabled={loading}>
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Box>
+      </Card>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} alignItems="center" mb={2}>
-        <TextField size="small" label="Observações" value={obs} onChange={(e) => setObs(e.target.value)} />
-        <Button variant="outlined" onClick={load} disabled={loading}>Atualizar</Button>
+        <TextField size="small" label="Observações" value={obs} onChange={(e) => setObs(e.target.value)} fullWidth />
       </Stack>
       <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Table size="small" sx={{ tableLayout: 'fixed' }} stickyHeader>
@@ -56,8 +91,24 @@ export default function AprovacoesPage() {
                 <TableCell>{new Date(row.created_at).toLocaleString()}</TableCell>
                 <TableCell align="right">
                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                    <Button size="small" color="success" variant="contained" onClick={() => decidir(row.id, 'aprovar')}>Aprovar</Button>
-                    <Button size="small" color="error" variant="contained" onClick={() => decidir(row.id, 'reprovar')}>Reprovar</Button>
+                    <Button 
+                      size="small" 
+                      color="success" 
+                      variant="contained" 
+                      startIcon={<CheckCircleIcon />}
+                      onClick={() => decidir(row.id, 'aprovar')}
+                    >
+                      Aprovar
+                    </Button>
+                    <Button 
+                      size="small" 
+                      color="error" 
+                      variant="contained" 
+                      startIcon={<CancelIcon />}
+                      onClick={() => decidir(row.id, 'reprovar')}
+                    >
+                      Reprovar
+                    </Button>
                   </Stack>
                 </TableCell>
               </TableRow>
